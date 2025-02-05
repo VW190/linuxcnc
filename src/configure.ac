@@ -1,10 +1,10 @@
 #                                               -*- Autoconf -*-
-# Process this file with autoconf to produce a configure script.
+# Procesar este archivo con autoconf para generar un script de configuración.
 #
-# Description: configure.ac
-#   Autonconf produce a ./configure from this file
-#   that's used to discover various programs/dependencies
-#   usage: autoconf
+# Descripción: configure.ac
+# Autonconf genera un ./configure a partir de este archivo
+# que se utiliza para descubrir varios programas/dependencias
+# uso: autoconf
 #
 # Authors: paul_c alex_joni jepler
 # License: GPL Version 2
@@ -20,42 +20,65 @@
 
 ##############################################################################
 # Section 1                                                                  #
-# Autoconf initialisation                                                    #
+# Inicialización Autoconf                                                    #
 ##############################################################################
 
+# versión de autoconf minima
 AC_PREREQ(2.69)
+# Inicializacion. AC_INIT (package, version, [bug-report], [tarname], [url])
 AC_INIT([LinuxCNC],[m4_normalize(esyscmd(cat ../VERSION))],[emc-developers@lists.sourceforge.net])
+# Archivo unico en srcdir, para chequeo de la variable
 AC_CONFIG_SRCDIR(emc/motion/motion.c)
+# test y accion en caso de directorio distinto a /src
 if test "$srcdir" != "."; then
-    AC_MSG_ERROR([Building outside of srcdir is not supported])
+    AC_MSG_ERROR([No se admite la construcción fuera de srcdir])
 fi
 
+# Determinar el compilador C++ a usar de la lista
 AC_PROG_CXX([$RTSCC c++ clang++])
+# Si se usa AC_PROG_INSTALL, se debe incluir install-sh en la distribución.
+# En este paquete de fuentes, autogen.sh cuida de la presencia de install-sh
+#   que viene con la instalación de autoconf
 AC_PROG_INSTALL
 
+# m4_include advierte de inclusion multiple de archivos
+# Ver https://www.gnu.org/software/autoconf-archive/The-Macros.html
+# Helper sencillo para garantizar que se hayan definido otras macros y estén disponibles para su uso.
 m4_include([m4/ax_require_defined.m4])
+# check de cobertura del lenguaje de referencia en el compilador para la versión especificada del estándar C++.
 m4_include([m4/ax_cxx_compile_stdcxx.m4])
+# check de cobertura del lenguaje en el compilador para la versión estándar C++17.
 m4_include([m4/ax_cxx_compile_stdcxx_17.m4])
+# Comprobación completa del entorno de desarrollo de Python.
 m4_include([m4/ax_python.m4])
+# Comprueba Python e intenta obtener la ruta include a 'Python.h'
 m4_include([m4/ax_python_devel.m4])
+# Test para librerias Boost C++ de version particular
 m4_include([m4/ax_boost_base.m4])
+# Comprueba si la biblioteca Boost.Python está instalada.
 m4_include([m4/ax_boost_python.m4])
-# make this optional - it will likely only result in warnings
+# haz esto opcional - probablemente solo resultará en warnings
 AX_CXX_COMPILE_STDCXX_17(ext,mandatory)
 
-AC_MSG_CHECKING(build toplevel)
+# Notificar verificando build toplevel, directorio padre de /src
+AC_MSG_CHECKING(directorio superior)
 BUILD_TOPLEVEL="$(cd ..; pwd -P)"
 AC_MSG_RESULT($BUILD_TOPLEVEL)
 
+# Crear header con directivas #define
 AC_CONFIG_HEADERS([config.h])
 
 # Support some of the standard configure options for directories
+# prefijo de instalación predeterminado
 AC_PREFIX_DEFAULT(run-in-place)
 
-AC_MSG_CHECKING(installation prefix)
+# Notificar verificando si RIP o no y ajustando prefix
+#  - sin prefijo -> RIP, y explicitamente prefix=${BUILD_TOPLEVEL}
+#  - con prefijo -> prefix
+AC_MSG_CHECKING(prefijo de instalación)
 if test "x$prefix" = "xNONE"; then
   RUN_IN_PLACE=yes
-  AC_MSG_RESULT(run in place)
+  AC_MSG_RESULT(RIP - ejecucion en el lugar)
   prefix=${BUILD_TOPLEVEL}
 else
   RUN_IN_PLACE=no
@@ -74,19 +97,21 @@ else
 fi
 AC_SUBST([EMC2VERSION])
 
+# Variables para los paths a grep y egrep
 AC_PATH_PROG(GREP, grep)
 AC_PATH_PROG(EGREP, egrep)
 
 #
-# check for pkg-config
+# check para pkg-config
 #
 PKG_PROG_PKG_CONFIG
 if test -z "$PKG_CONFIG"; then
-  AC_MSG_ERROR([pkg-config is required to build LinuxCNC])
+  AC_MSG_ERROR([se requiere pkg-config para construir LinuxCNC])
 fi
 
 #
-# check for rpc/rpc.h
+# Sun transport-independent RPC (remote procedure call) library
+# check para header de sistema rpc/rpc.h
 #
 AC_CHECK_HEADER([rpc/rpc.h],[], [
   if ! test -z "$PKG_CONFIG libtirpc"; then
@@ -102,26 +127,26 @@ AC_CHECK_HEADER([rpc/rpc.h],[], [
 
   # Update path
   AC_CHECK_LIB([tirpc], [get_myaddress], [], [
-    AC_MSG_ERROR([Didn't find tirpc])
+    AC_MSG_ERROR([No se encuentra tirpc])
   ])
 
   # Clear the cached check
   $as_unset ac_cv_header_rpc_rpc_h
   AC_CHECK_HEADER([rpc/rpc.h],[],[
-    AC_MSG_ERROR([glibc rpc.h missing, please install libtirpc])
+    AC_MSG_ERROR([glibc rpc.h desaparecido, por favor instale libtirpc])
   ])
 ])
 
 
 ##############################################################################
-# Section 2                                                                  #
-# RealTime checking (either RTAI, or RT-Linux)                               #
-# Subsection 2.1 - arguments to ./configure (--with-realtime)                #
-# Subsection 2.2 - if none specified above, RTDIR needs to be found by search#
-# Subsection 2.3 - RTS(RT-script) is found, it gets queried for values       #
+# Sección 2                                                                  #
+# Comprobación de tiempo real (RTAI o RT-Linux)                              #
+# Subsección 2.1: argumentos para ./configure (--with-realtime)              #
+# Subsección 2.2: si no se especificó ninguno antes, se debe buscar RTDIR    #
+# Subsección 2.3: se encuentra RTS(RT-script), se consultan sus valores      #
 ##############################################################################
 
-# set up some default values
+# preparar algunos valores por defecto
 RTDIR=""
 RTAI=""
 RTPREFIX=""
@@ -132,7 +157,7 @@ NONDISTRIBUTABLE=false
 AC_ARG_ENABLE(non-distributable,
     AS_HELP_STRING(
         [--enable-non-distributable],
-        [To build LinuxCNC even if a license problem would render the resulting binaries non-distributable under the terms of the LinuxCNC license]),
+        [Construir LinuxCNC incluso si un problema de licencia hiciera que los binarios resultantes no fueran distribuibles según los términos de la licencia de LinuxCNC]),
     [
         case "$enableval" in
         (yes) NONDISTRIBUTABLE=true ;;
@@ -140,22 +165,22 @@ AC_ARG_ENABLE(non-distributable,
     ])
 
 ##############################################################################
-# Subsection 2.1                                                             #
-# Check for arguments to ./configure                                         #
-# accept --with-realtime=<path> from commandline                             #
+# Subsección 2.1                                                             #
+# Verificar argumentos para ./configure                                      #
+# aceptar --with-realtime=<path> desde la línea de comandos                  #
 ##############################################################################
 
 RTDIR=""
 AC_ARG_ENABLE(simulator,
     AS_HELP_STRING(
         [--enable-simulator],
-        [Deprecated!  Use --with-realtime=uspace instead.]
+        [Obsoleto! Utilice --with-realtime=uspace en su lugar.]
     ),
     [
         case "$enableval" in
         Y*|y*)
             RTS=uspace
-            AC_MSG_WARN([--enable-simulator is deprecated.  Use --with-realtime=uspace instead.])
+            AC_MSG_WARN([--enable-simulator es obsoleto.  Utilice --with-realtime=uspace en su lugar.])
         ;;
         esac
     ])
@@ -163,11 +188,11 @@ AC_ARG_ENABLE(simulator,
 AC_ARG_WITH(realtime,
     AS_HELP_STRING(
         [--with-realtime=PATH],
-        [Path where RTAI is installed, or "uspace" for POSIX userspace.]
+        [Path donde RTAI esta instalado, o "uspace" para userspace POSIX.]
     ),
     [   case "$withval" in
 	"" | y | ye | yes | n | no)
-	    AC_MSG_ERROR([You must supply a path or "uspace" for --with-realtime.]) ;;
+	    AC_MSG_ERROR([Debe proporcionar un path o "uspace" para --with-realtime.]) ;;
 	*)
             RTS="$withval" ;;
         esac
@@ -178,7 +203,7 @@ TOOL_NML=no
 AC_ARG_ENABLE(toolnml,
     AS_HELP_STRING(
         [--enable-toolnml],
-        [Use nml for tooldata, default is mmap]
+        [Usar nml para tooldata. Por defecto, mmap]
     ),
     [
         case "$enableval" in
@@ -189,19 +214,20 @@ AC_ARG_ENABLE(toolnml,
         esac
     ])
 ##############################################################################
-# Subsection 2.2                                                             #
-# 1. If a RT has been specified by the user it needs to be checked for       #
-# validity. That is done by checking default locations for a certain script  #
-# (similar to 2)                                                             #
+# Subsección 2.2                                                             #
+# 1. Si el usuario ha especificado un RT, es necesario comprobar su validez  #
+#. Esto se hace comprobando las ubicaciones predeterminadas de un            #
+# determinado script                                                         #
+# (similar a 2)                                                              #
 #                                                                            #
-# 2. If no RT has been specified explicitly by the user, one has to be       #
-# found by search. In order to do that the following code will search for a  #
-# RT-specific script:                                                        #
-# rtai-config for RTAI 3.x                                                   #
+# 2. Si el usuario no ha especificado ningún RT explícitamente, se debe      #
+# encontrar uno mediante una búsqueda. Para ello, el siguiente código        #
+# buscará un script específico de RT:                                        #
+# rtai-config para RTAI 3.x                                                  #
 ##############################################################################
 
-#at this point if RTS is empty, we need to find RT ourselves
-AC_MSG_CHECKING([for rtai-config])
+## Notificar verificando rtai-config. En este punto, si RTS está vacío, debemos encontrar RT nosotros mismos.
+AC_MSG_CHECKING([para rtai-config])
 if test -z "$RTDIR"; then
   DIRS="/usr/realtime-`uname -r` /usr/realtime /usr/realtime* /usr /usr/src/rtai*"
 else
@@ -225,7 +251,8 @@ AC_SUBST([RTAI_CONFIG])
 AC_PATH_PROG([XENOMAI_CONFIG], [xeno-config], [none])
 AC_SUBST([XENOMAI_CONFIG])
 
-AC_MSG_CHECKING([for realtime API(s) to use])
+# Notificar verificando
+AC_MSG_CHECKING([para API(s) realtime a usar])
 if test "$RTS" = uspace || test -z "$RTS" -a "$RTAI_CONFIG" = "none" ; then
   RTS=uspace
   if test "$RTAI_CONFIG" = "none" ; then
@@ -238,7 +265,7 @@ if test "$RTS" = uspace || test -z "$RTS" -a "$RTAI_CONFIG" = "none" ; then
     CONFIG_USPACE_RTAI=y
     RTAI_LXRT_CFLAGS=`$RTAI_CONFIG --lxrt-cflags`
     RTAI_LXRT_LDFLAGS=`$RTAI_CONFIG --lxrt-ldflags`
-    AC_DEFINE([USPACE_RTAI], [], [Define if uspace realtime should optionally support RTAI LXRT])
+    AC_DEFINE([USPACE_RTAI], [], [Definido si uspace realtime debe admitir opcionalmente RTAI LXRT])
   fi
   AC_SUBST([CONFIG_USPACE_RTAI])
   AC_SUBST([RTAI_LXRT_CFLAGS])
@@ -254,7 +281,7 @@ if test "$RTS" = uspace || test -z "$RTS" -a "$RTAI_CONFIG" = "none" ; then
     CONFIG_USPACE_XENOMAI=y
     XENOMAI_CFLAGS=`$XENOMAI_CONFIG --skin posix --cflags`
     XENOMAI_LDFLAGS=`$XENOMAI_CONFIG --skin posix --ldflags`
-    AC_DEFINE([USPACE_XENOMAI], [], [Define if uspace realtime should optionally support Xenomai])
+    AC_DEFINE([USPACE_XENOMAI], [], [Definido si uspace realtime debe soportar opcionalmente Xenomai])
   fi
   AC_SUBST([CONFIG_USPACE_XENOMAI])
   AC_SUBST([XENOMAI_CFLAGS])
@@ -262,11 +289,12 @@ if test "$RTS" = uspace || test -z "$RTS" -a "$RTAI_CONFIG" = "none" ; then
 
   AC_MSG_RESULT([$RTS$USPACE_RTAI$USPACE_XENOMAI])
 
-  AC_MSG_CHECKING([whether to enable userspace PCI access])
+# Notificar verificando acceso PCI al espacio de usuario
+  AC_MSG_CHECKING([habilitar el acceso PCI al espacio de usuario? ])
   AC_ARG_ENABLE(userspace-pci,
       AS_HELP_STRING(
         [--disable-userspace-pci],
-        [Disable userspace PCI access (use this if libudev is unavailable).],
+        [Deshabilitar el acceso PCI al espacio de usuario (use esto si libudev no está disponible).],
       ),
       [
 	case "$enableval" in
@@ -286,14 +314,15 @@ if test "$RTS" = uspace || test -z "$RTS" -a "$RTAI_CONFIG" = "none" ; then
   AC_SUBST([BUILD_UDEV])
 
   if test "$BUILD_UDEV" = "yes"; then
-    AC_MSG_CHECKING([for libudev])
+	# Notificar verificando libudev
+    AC_MSG_CHECKING([para libudev])
     if pkg-config libudev >/dev/null 2>&1; then
         LIBUDEV_VER=`pkg-config udev --modversion`
-        AC_MSG_RESULT(yes - version [$LIBUDEV_VER])
+        AC_MSG_RESULT(si - versión [$LIBUDEV_VER])
         LIBUDEV_CFLAGS=`pkg-config libudev --cflags`
         LIBUDEV_LIBS=`pkg-config libudev --libs`
     else
-      AC_MSG_ERROR([libudev-dev not found])
+      AC_MSG_ERROR([libudev-dev no encontrada])
     fi
   else
     LIBUDEV_CFLAGS=-DNO_LIBUDEV
@@ -306,12 +335,12 @@ else
 fi
 
 
-##############################################################################
-# Subsection 2.3                                                             #
-# we have the RT-script now, it's time to query it for some values           #
-# it can provide us with default values such as CC, CFLAGS, etc              #
-# see each case for more details                                             #
-##############################################################################
+################################################################################
+# Subsección 2.3                                                               #
+# Ahora tenemos el script RT, es momento de consultarlo para obtener algunos   #
+# valores. Puede proporcionarnos valores predeterminados como CC, CFLAGS, etc. #
+# Vea cada caso para obtener más detalles                                      #
+################################################################################
 
 RTARCH=`uname -m | sed s/i.86/i386/`
 case $RTS in
@@ -340,17 +369,18 @@ uspace|uspace+*)
 esac
 
 if test "$RTS" != uspace; then
-    AC_MSG_CHECKING([for location of kernel headers])
+	# Notificar verificando
+    AC_MSG_CHECKING([para localización de headers del kernel])
     AC_ARG_WITH(kernel-headers,
         AS_HELP_STRING(
             [--with-kernel-headers=PATH],
-            [Location for kernel headers.]
+            [Localización de headers del kernel.]
         ),
 	[
 	    KERNELDIR="$withval"
-	    AC_MSG_RESULT(using specified value: $KERNELDIR)
+	    AC_MSG_RESULT(usando valor especificado: $KERNELDIR)
 	],[
-	    AC_MSG_RESULT(using value from RTS: $KERNELDIR)
+	    AC_MSG_RESULT(usando valor desde RTS: $KERNELDIR)
 	])
 fi
 
@@ -365,50 +395,51 @@ AC_SUBST([ULAPI_LDFLAGS])
 
 case "$RTPREFIX" in
 uspace)
-    AC_DEFINE(RTAPI_USPACE, [], [Realtime system is userspace]) ;;
+    AC_DEFINE(RTAPI_USPACE, [], [Sistema Realtime es userspace]) ;;
 rtai)
-    AC_DEFINE(RTAPI_RTAI, [], [Realtime system is RTAI]) ;;
+    AC_DEFINE(RTAPI_RTAI, [], [Sistema Realtime es RTAI]) ;;
 esac
 
 
 EMC2_HOME=`(cd .. ; pwd)`
 AC_SUBST([EMC2_HOME])
 
-AC_DEFINE_UNQUOTED([RTDIR], "$RTDIR", [Directory of the installed realtime system])
+AC_DEFINE_UNQUOTED([RTDIR], "$RTDIR", [Directorio del sistema realtime instalado])
 
-##############################################################################
-# Section 3                                                                  #
-# additional checking                                                        #
-# Subsection 3.1 - checking for a CC (we must use the same one used for RT)  #
-# Subsection 3.2 - check for the kernel version, with RT patches             #
-# Subsection 3.3 - check the moduledir where modules can get installed       #
-# Subsection 3.4 - check for GTK                                             #
-# Subsection 3.5 - check for utility programs needed to build and run EMC    #
-##############################################################################
+################################################################################################
+# Sección 3                                                                                    #
+# Comprobaciones adicionales                                                                   #
+# Subsección 3.1 - comprobar si hay un CC (debemos usar el mismo usado para RT)                #
+# Subsección 3.2 - comprobar la versión del kernel, con parches RT                             #
+# Subsección 3.3 - comprobar el directorio donde se pueden instalar los módulos                #
+# Subsección 3.4 - comprobar GTK                                                               #
+# Subsección 3.5 - comprobar los programas de utilidad necesarios para compilar y ejecutar EMC #
+################################################################################################
 
 
-##############################################################################
-# Subsection 3.1 - checking for a CC (we must use the same one used for RT)  #
-##############################################################################
-AC_MSG_CHECKING([for cc version])
+#################################################################################
+# Subsección 3.1 - comprobar si hay un CC (debemos usar el mismo usado para RT) #
+#################################################################################
+# Notificar verificando versión cc
+AC_MSG_CHECKING([para versión cc])
 
 if (test ${RTS##*/} = rtai-config ) ; then
   RTSCC=`$RTS --cc`
-  AC_MSG_RESULT(found $RTSCC in rtai-config)
+  AC_MSG_RESULT(encontrado $RTSCC en rtai-config)
 else
-  AC_MSG_RESULT(not specified)
+  AC_MSG_RESULT(no especificado)
 fi
 
 AC_PROG_CC([$RTSCC gcc clang])
 AC_PROG_CPP()
 
 if test -z "$CC"; then
-  AC_MSG_ERROR([no acceptable cc found])
+  AC_MSG_ERROR([no se encuentra cc acceptable])
 elif ! test `$CC -dumpversion | cut -d '.' -f 1` -gt 2 ; then
-  AC_MSG_ERROR([Compilers older than gcc 3.x are no longer supported])
+  AC_MSG_ERROR([Compiladores mas antiguos que gcc 3.x ya no son soportados])
 fi
 
-# Set flags for C and C++ if supported
+# establecer flags para C y C++ si se soporta
 for commonflag in -Wno-stringop-truncation ; do
   if echo "int main() { return 0;}" | $CC -Werror $commonflag -E - > /dev/null; then
     CFLAGS="${CFLAGS:+$CFLAGS }$flag"
@@ -416,23 +447,25 @@ for commonflag in -Wno-stringop-truncation ; do
   fi
 done
 
-AC_MSG_CHECKING([for usability of linux/hidraw.h])
+# Notificar verificando linux/hidraw.h, interface raw a USB y Bluetooth HID 
+AC_MSG_CHECKING([para usabilidad de linux/hidraw.h])
 AC_LINK_IFELSE([AC_LANG_PROGRAM([[
 #include <sys/ioctl.h>
 #include <linux/hidraw.h>
 long hidiocgrawinfo = HIDIOCGRAWINFO;
     ]], [[]])],[
 	HIDRAW_H_USABLE=yes
-        AC_DEFINE([HIDRAW_H_USABLE], [], [Define to 1 if linux/hidraw.h is usable and defines HIDIOCGRAWINFO])
+        AC_DEFINE([HIDRAW_H_USABLE], [], [Definido a 1 si linux/hidraw.h se puede utilizar y está definido HIDIOCGRAWINFO])
 ],[HIDRAW_H_USABLE=no])
 AC_MSG_RESULT($HIDRAW_H_USABLE)
 AC_SUBST([HIDRAW_H_USABLE])
 
 #
-# Check for rpc/rpc.h
+# Check para rpc/rpc.h
 #
 
-AC_MSG_CHECKING([for usability of rpc/rpc.h])
+# Notificar verificando rpc/rpc.h
+AC_MSG_CHECKING([para usabilidad of rpc/rpc.h])
 AC_LINK_IFELSE([AC_LANG_PROGRAM([[
 #include <rpc/rpc.h>
     ]], [[
@@ -442,20 +475,22 @@ get_myaddress(foo);
         AC_MSG_RESULT(yes)
     ],[
         AC_MSG_RESULT(no)
-        AC_MSG_ERROR([Unable to use rpc.h])
+        AC_MSG_ERROR([No se puede utilizar rpc.h])
     
 ])
 
 #
-# check for libmodbus3
+# check para libmodbus3
 #
 
 AC_ARG_WITH(
     [libmodbus],
     AS_HELP_STRING(
         [--with-libmodbus],
-        [Specify whether or not to build the drivers that use libmodbus
-        (defaults to "yes").]
+        [Especificar si desea o no compilar los controladores que utilizan libmodbus
+        (predeterminado a "sí").]
+
+
     ),
     [WITH_LIBMODBUS=$withval],
     [WITH_LIBMODBUS=yes]
@@ -464,7 +499,8 @@ AC_ARG_WITH(
 AS_IF(
     [test "x$WITH_LIBMODBUS" = "xyes"],
     [
-        AC_MSG_CHECKING([for libmodbus3])
+		# Notificar verificando libmodbus3
+        AC_MSG_CHECKING([para libmodbus3])
         if pkg-config libmodbus --atleast-version 3 >/dev/null 2>&1; then
             LIBMODBUS_VER=`pkg-config libmodbus --modversion`
             AC_MSG_RESULT(yes - version [$LIBMODBUS_VER])
@@ -475,13 +511,13 @@ AS_IF(
             AC_DEFINE(
                 [HAVE_LIBMODBUS3],
                 [yes],
-                [define if the libmodbus3 headers and library are available]
+                [definido si los encabezados y la biblioteca libmodbus3 están disponibles.]
             )
             AC_SUBST(HAVE_LIBMODBUS3, yes)
         else
           AC_MSG_RESULT(no)
-          AC_MSG_ERROR([libmodbus3 not found!
-install with "sudo apt-get install libmodbus-dev" or disable with
+          AC_MSG_ERROR([¡No se encontró libmodbus3!
+Instálelo con "sudo apt-get install libmodbus-dev" o deshabilítelo con
 "configure --without-libmodbus"])
         fi
     ]
@@ -489,15 +525,15 @@ install with "sudo apt-get install libmodbus-dev" or disable with
 
 
 #
-# check for libusb-1.0
+# check para libusb-1.0
 #
 
 AC_ARG_WITH(
     [libusb-1.0],
     AS_HELP_STRING(
         [--with-libusb-1.0],
-        [Specify whether or not to build the drivers that use libusb-1.0
-        (defaults to "yes").]
+        [Especificar si desea o no compilar los controladores que utilizan libusb-1.0
+        (predeterminado a "sí").]
     ),
     [WITH_LIBUSB10=$withval],
     [WITH_LIBUSB10=yes]
@@ -506,6 +542,7 @@ AC_ARG_WITH(
 AS_IF(
     [test "x$WITH_LIBUSB10" = "xyes"],
     [
+		# Notificar verificando libusb-1.0
         AC_MSG_CHECKING([for libusb-1.0])
         if pkg-config libusb-1.0 >/dev/null 2>&1; then
             AC_MSG_RESULT(yes)
@@ -516,44 +553,44 @@ AS_IF(
             AC_DEFINE(
                 [HAVE_LIBUSB10],
                 [yes],
-                [define if the libusb-1.0 headers and library are available]
+                [Definido si los encabezados y la biblioteca libusb-1.0 están disponibles]
             )
             AC_SUBST(HAVE_LIBUSB10, yes)
         else
           AC_MSG_RESULT(no)
-          AC_MSG_ERROR([libusb-1.0 not found!
-install with "sudo apt-get install libusb-1.0-0-dev" or disable with
+          AC_MSG_ERROR([¡No se encontró libusb-1.0!
+Instálelo con "sudo apt-get install libusb-1.0-0-dev" o deshabilítelo con
 "configure --without-libusb-1.0"])
         fi
     ]
 )
 
 
-
 #
-# check for libgpiod
+# check para libgpiod  OJO, CORREGIR
 #
 PKG_CHECK_MODULES([LIBGPIOD], [libgpiod < 2.0.0],
             [AC_DEFINE_UNQUOTED([LIBGPIOD_VER], `pkg-config libgpiod --modversion | awk -F. '{print ($1 * 100)+($2) }'`,
-            [libgpiod version, undefined if not present])
+            [versión libgpiod, no definida si no presente])
             LDFLAGS="$LDFLAGS $LIBGPIOD_LIBS"
             LIBGPIOD_VERSION=`pkg-config libgpiod --modversion`
-            AC_MSG_NOTICE([libgpiod version $LIBGPIOD_VERSION found])
+            AC_MSG_NOTICE([encontrado libgpiod versión $LIBGPIOD_VERSION])
             AC_SUBST([LIBGPIOD_VER], `pkg-config libgpiod --modversion | awk -F. '{print ($1 * 100)+($2) }'`)],
-            [AC_MSG_WARN([Could not find libgpiod, not building hal_gpio])])
+            [AC_MSG_WARN([No se encuentra libgpiod, no se construye hal_gpio])])
 
-##############################################################################
-# Subsection 3.2 - check for the kernel version, with RT patches             #
-#----------------------------------------------------------------------------#
-# Check the kernel headers to find the uts-kernel version.                   #
-# This should be a more reliable way of determining the kernel that          #
-# is being used to compile against - `uname -r` only returns the             #
-# running kernel version which is may not be the one the code is             #
-# compiled against.                                                          #
-##############################################################################
+#################################################################################
+# Subsección 3.2 - comprobar la versión del kernel, con parches RT              #
+#-------------------------------------------------------------------------------#
+# Compruebe los encabezados del kernel para encontrar la versión de uts-kernel. #
+# Esta debería ser una forma más confiable de determinar el kernel que          #
+# se está usando para compilar: `uname -r` solo devuelve la                     #
+# versión del kernel en ejecución, que puede no ser la misma contra la que      #
+#se compila el código.                                                          #
+#################################################################################
 
 if test $RTS '!=' uspace; then
-AC_MSG_CHECKING([for kernel version string])
+# Notificar verificando cadena de versión del kernel
+AC_MSG_CHECKING([para la cadena de versión del kernel])
 
 if test -e $KERNELDIR/include/linux/utsrelease.h; then
     VERSION_FILE=$KERNELDIR/include/linux/utsrelease.h
@@ -565,25 +602,25 @@ fi
 KERNEL_VERS=`$CC -E -dM ${VERSION_FILE} | grep UTS | cut -s -d '"' -f 2`
 
 if test -z "$KERNEL_VERS"; then
-    AC_MSG_ERROR(Kernel version string not found)
+    AC_MSG_ERROR(Cadena de versión del kernel no encontrada)
 fi
 
 AC_MSG_RESULT([$KERNEL_VERS])
 AC_SUBST([KERNEL_VERS])
 AC_DEFINE_UNQUOTED([RTAPI_KERNEL_VERSION], "$KERNEL_VERS", [Required kernel version])
 
-# Do a quick test for module extension..
-AC_MSG_CHECKING([for kernel module extension])
+# # Notificar verificando extension para modulos.
+AC_MSG_CHECKING([para extension de modulos del kernel])
 MODEXT=`$RTS --module-ext 2>/dev/null` || MODEXT=".o"
 if test "x" = "x$MODEXT"; then
     MODEXT=".o"
 fi
 AC_MSG_RESULT([$MODEXT])
 
-# This check should see if kbuild is or isn't used
-AC_MSG_CHECKING([kernel build system])
+# # Notificar verificando si kbuild se usa
+AC_MSG_CHECKING([Sistema de construcción del kernel])
 # FIXME FIXME FIXME
-# right now it will assume based on the kernel module extension
+# En este momento, se asumirá en función de la extensión de módulos del kernel.
 EXT_RTFLAGS=""
 BUILD_SYS="normal"
 
@@ -596,7 +633,7 @@ fi
 AC_ARG_WITH(kbuild,
     AS_HELP_STRING(
         [--with-kbuild],
-        [Specify if your kernel uses kbuild or not.]
+        [Especificar si su kernel usa kbuild o no.]
     ),
     [
         case "$withval" in
@@ -611,49 +648,49 @@ AC_ARG_WITH(kbuild,
 AC_MSG_RESULT([$BUILD_SYS])
 fi
 AC_SUBST([MODEXT])
-AC_DEFINE_UNQUOTED([MODULE_EXT], "$MODEXT", [Extension for realtime modules])
+AC_DEFINE_UNQUOTED([MODULE_EXT], "$MODEXT", [Extension para modulos realtime])
 AC_SUBST([BUILD_SYS])
 AC_SUBST([EXT_RTFLAGS])
 
-##############################################################################
-# Subsection 3.3 - check the moduledir where modules can get installed       #
-#                                                                            #
-# Provides the user the possibility to specify (--with-module-dir=<path>)    #
-# If not specified default inside /lib/modules/${KERNEL_VERS}/               #
-# to the location where a RT-module gets found (mbuff.o or rtai_shed.o)     #
-# (maybe the default should be /lib/modules/$KERNEL_VERS/extra if it exists? #
-##############################################################################
+###########################################################################################
+# Subsección 3.3 - comprobar el moduledir donde se pueden instalar los módulos            #
+#                                                                                         #
+# Proporciona al usuario la posibilidad de especificarlo (--with-module-dir=<path>)       #
+# Si no se especifica, por defecto dentro de /lib/modules/${KERNEL_VERS}/                 #
+# en la ubicación donde se encuentra un módulo RT (mbuff.o o rtai_shed.o)                 #
+# (¿quizás el valor predeterminado debería ser /lib/modules/$KERNEL_VERS/extra si existe? #
+###########################################################################################
 
-# Create a module-dir option, similar to rtai's...
-AC_MSG_CHECKING([for module installation directory])
+# # Notificar verificando directorio de instalación de módulos, similar a rtai's...
+AC_MSG_CHECKING([para directorio de instalación de módulos])
 
 AC_ARG_WITH(module-dir,
     AS_HELP_STRING(
         [--with-module-dir=PATH],
-        [Installation directory for kernel modules.]
+        [directorio de instalación para módulos del kernel.]
     ),
     [
         case "$withval" in
         "" | y | ye | yes | n | no)
-            AC_MSG_ERROR([You must supply a path for --with-module-dir.])
+            AC_MSG_ERROR([Debe suministrar un path para --with-module-dir.])
           ;;
         esac
         MODULE_DIR="$withval"
     ])
 
 
-# if not specified, ask the realtime config script where the directory is
-# if the config script returns an error, set MODULE_DIR to nothing
+# si no se especifica, pregunta al script de configuración en tiempo real dónde está el directorio
+# si el script de configuración devuelve un error, MODULE_DIR no establece en nada
 if test "x" = "x$MODULE_DIR" ; then
   MODULE_DIR=`$RTS --module-dir 2>/dev/null`
   if ! test -d $MODULE_DIR ; then
-    AC_MSG_ERROR([$RTS --module-dir did not specify an existing directory.  You must use specify it using --with-module-dir=...])
+    AC_MSG_ERROR([$RTS --module-dir no especificó un directorio existente. Debe especificarlo mediante --with-module-dir=...])
   fi
 fi
 
 if test "$RUN_IN_PLACE" = "yes"; then
     RIP_MODULE_DIR="${BUILD_TOPLEVEL}/rtlib"
-    AC_MSG_RESULT([configuring for run-in-place])
+    AC_MSG_RESULT([configurando para run-in-place])
     prefix=${BUILD_TOPLEVEL}
     if test "$TOOL_NML" = "yes"; then
        DEFAULT_NMLFILE=${prefix}/configs/common/linuxcnc_big.nml
@@ -679,16 +716,16 @@ AC_SUBST([RIP_MODULE_DIR])
 AC_SUBST([RUN_IN_PLACE])
 AC_SUBST([DEFAULT_NMLFILE])
 AC_SUBST([TOOL_NML])
-AC_DEFINE_UNQUOTED([EMC2_DEFAULT_NMLFILE], "$DEFAULT_NMLFILE", [Default nml file])
-AC_DEFINE_UNQUOTED([EMC2_DEFAULT_TOOLTABLE], "$DEFAULT_TOOLTABLE", [Default nml file])
+AC_DEFINE_UNQUOTED([EMC2_DEFAULT_NMLFILE], "$DEFAULT_NMLFILE", [archivo nml por defecto])
+AC_DEFINE_UNQUOTED([EMC2_DEFAULT_TOOLTABLE], "$DEFAULT_TOOLTABLE", [archivo nml por defecto])
 
-##############################################################################
-# Subsection 3.4 - define default dirs, these get used in a lot of places    #
-# we decide based on RIP or install where stuff goes                         #
-##############################################################################
+########################################################################################
+# Subsección 3.4: define los directorios predeterminados, utilizados en muchos lugares #
+# Decidimos dónde van las cosas en función de RIP o instalación                        #
+########################################################################################
 
 fe () {
-    # Fully expand argument.  Example:
+    # Funcion: Expandir completamente el argumento. Ejemplo:
     # ${datadir} -> ${datarootdir} -> ${prefix}/share -> /usr/local
     case "$1" in
     *\$*) eval fe \""$1"\" ;;
@@ -738,15 +775,15 @@ else
     HALLIB_DIR=${prefix}/share/linuxcnc/hallib
 fi
 
-AC_DEFINE_UNQUOTED([EMC2_HOME], "$EMC2_HOME", [Prefix or RIP directory])
-AC_DEFINE_UNQUOTED([EMC2_BIN_DIR], "$EMC2_BIN_DIR", [Directory for binaries])
-AC_DEFINE_UNQUOTED([EMC2_TCL_DIR], "$EMC2_TCL_DIR", [Directory for tcl scripts])
-AC_DEFINE_UNQUOTED([EMC2_HELP_DIR], "$EMC2_HELP_DIR", [Directory for help files])
-AC_DEFINE_UNQUOTED([EMC2_RTLIB_DIR], "$EMC2_RTLIB_DIR", [Directory of realtime system])
-AC_DEFINE_UNQUOTED([EMC2_LANG_DIR], "$EMC2_LANG_DIR", [Directory for tcl translation files])
-AC_DEFINE_UNQUOTED([EMC2_PO_DIR], "$EMC2_PO_DIR", [Directory for po/mo translation files])
-AC_DEFINE_UNQUOTED([EMC2_NCFILES_DIR], "$EMC2_NCFILES_DIR", [Directory for nc files])
-AC_DEFINE_UNQUOTED([EMC2_IMAGE_DIR], "$EMC2_IMAGE_DIR", [Directory for images])
+AC_DEFINE_UNQUOTED([EMC2_HOME], "$EMC2_HOME", [Directorio de prefijo o RIP])
+AC_DEFINE_UNQUOTED([EMC2_BIN_DIR], "$EMC2_BIN_DIR", [Directorio para binarios])
+AC_DEFINE_UNQUOTED([EMC2_TCL_DIR], "$EMC2_TCL_DIR", [Directorio para scripts tcl])
+AC_DEFINE_UNQUOTED([EMC2_HELP_DIR], "$EMC2_HELP_DIR", [Directorio para archivos de ayuda])
+AC_DEFINE_UNQUOTED([EMC2_RTLIB_DIR], "$EMC2_RTLIB_DIR", [Directorio de archivos de sistema tiempo real])
+AC_DEFINE_UNQUOTED([EMC2_LANG_DIR], "$EMC2_LANG_DIR", [Directorio para archivos de traducción tcl])
+AC_DEFINE_UNQUOTED([EMC2_PO_DIR], "$EMC2_PO_DIR", [Directorio para archivos de traducción po/mo])
+AC_DEFINE_UNQUOTED([EMC2_NCFILES_DIR], "$EMC2_NCFILES_DIR", [Directorio para archivos nc])
+AC_DEFINE_UNQUOTED([EMC2_IMAGE_DIR], "$EMC2_IMAGE_DIR", [Directorio para imágenes])
 
 AC_SUBST([EMC2_BIN_DIR])
 AC_SUBST([EMC2_TCL_DIR])
@@ -765,32 +802,33 @@ AC_SUBST([EMC2_SUFFIX])
 AC_SUBST([EMC2_ICON])
 AC_SUBST([HALLIB_DIR])
 
-# coordinate installed auxiliary applications (not RIP or deb dependent):
+# # coordinar aplicaciones auxiliares instaladas (no dependientes de RIP o deb):
 LINUXCNC_AUX_GLADEVCP=/usr/share/linuxcnc/aux_gladevcp
 LINUXCNC_AUX_EXAMPLES=/usr/share/linuxcnc/aux_examples
 AC_SUBST([LINUXCNC_AUX_GLADEVCP])
 AC_SUBST([LINUXCNC_AUX_EXAMPLES])
 
 ##############################################################################
-# Subsection 3.5 - check for GTK                                             #
-# FIXME: allow it to be enabled or disabled command line                     #
+# Subsecciónn 3.5 - check para GTK                                           #
+# FIXME: permitir habilitar o deshabilitar la línea de comandos              #
 ##############################################################################
 
-AC_MSG_CHECKING([for glib])
+# Notificar verificando glib, libreria GTK
+AC_MSG_CHECKING([para glib])
 if pkg-config glib-2.0 >/dev/null 2>&1; then
   GLIB_VER=`pkg-config glib-2.0 --modversion`
   AC_MSG_RESULT(yes - $GLIB_VER)
   GLIB_CFLAGS=`pkg-config glib-2.0 --cflags`
   GLIB_LIBS=`pkg-config glib-2.0 --libs`
 else
-  AC_MSG_ERROR(no -- required until somebody makes glib optional)
+  AC_MSG_ERROR(no se requieren --hasta que glib sea opcional)
 fi
 
 
 AC_ARG_ENABLE(gtk,
     AS_HELP_STRING(
         [--disable-gtk],
-        [Disable the parts of LinuxCNC that depend on GTK.]
+        [Deshabilita las partes de LinuxCNC que dependen de GTK.]
     ),
     [
 	case "$enableval" in
@@ -803,7 +841,8 @@ AC_ARG_ENABLE(gtk,
     [BUILD_GTK=yes])
 
 if test "$BUILD_GTK" = "yes"; then
-  AC_MSG_CHECKING([for GTK 3.22.4 or above])
+	# Notificar verificando GTK 3
+  AC_MSG_CHECKING([para GTK 3.22.4 o superior])
   if pkg-config gtk+-3.0 --atleast-version 3.22.4 >/dev/null 2>&1; then
     GTK_VER=`pkg-config gtk+-3.0 --modversion`
     AC_MSG_RESULT(yes - $GTK_VER)
@@ -811,7 +850,7 @@ if test "$BUILD_GTK" = "yes"; then
     GTK_LIBS=`pkg-config gtk+-3.0 --libs`
   else
     AC_MSG_RESULT(no)
-    AC_MSG_ERROR([GTK3 missing.  Install with "sudo apt install libgtk-3-dev" or specify --disable-gtk to skip the parts of LinuxCNC that depend on GTK])
+    AC_MSG_ERROR([Falta GTK3. Instálelo con "sudo apt install libgtk-3-dev" o especifique --disable-gtk para omitir las partes de LinuxCNC que dependen de GTK])
   fi
 fi
 
@@ -825,7 +864,7 @@ AC_SUBST(GLIB_CFLAGS)
 AC_ARG_ENABLE(gtk2,
     AS_HELP_STRING(
         [--disable-gtk2],
-        [Disable the parts of LinuxCNC that depend on GTK2. Ónly needed for classicladder)]
+        [Deshabilita las partes de LinuxCNC que dependen de GTK2. Solo necesarias para classicladder)]
     ),
     [
 	case "$enableval" in
@@ -838,12 +877,14 @@ AC_ARG_ENABLE(gtk2,
     [BUILD_GTK2=yes])
 
 if test "$BUILD_GTK2" = "yes"; then
-  AC_MSG_CHECKING([for GTK 2.4.0 or above])
+	# Notificar verificando GTK 2
+  AC_MSG_CHECKING([para GTK 2.4.0 o superior])
   if pkg-config gtk+-2.0 --atleast-version 2.4.0 >/dev/null 2>&1; then
     GTK2_VER=`pkg-config gtk+-2.0 --modversion`
     AC_MSG_RESULT(yes - $GTK2_VER)
     GTK2_CFLAGS=`pkg-config gtk+-2.0 --cflags`
     GTK2_LIBS=`pkg-config gtk+-2.0 --libs`
+	# Notificar verificando libgnomeprintui
     AC_MSG_CHECKING(for libgnomeprintui-2.2)
     if pkg-config --exists libgnomeprintui-2.2; then
       AC_MSG_RESULT(yes)
@@ -851,12 +892,12 @@ if test "$BUILD_GTK2" = "yes"; then
       GTK2_LIBS="$GTK2_LIBS `pkg-config --libs libgnomeprintui-2.2`"
       HAVE_GNOMEPRINT=yes
     else
-      AC_MSG_RESULT(no -- printing from classicladder will not be possible)
+      AC_MSG_RESULT(no -- no será posible imprimir desde classicladder.)
       HAVE_GNOMEPRINT=
     fi
   else
     AC_MSG_RESULT(no)
-    AC_MSG_ERROR([GTK2 missing.  Install with "sudo apt install libgtk2.0-dev" or specify --disable-gtk2 to skip building classicladder])
+    AC_MSG_ERROR([Falta GTK2. Instálelo con "sudo apt install libgtk2.0-dev" o especifique --disable-gtk2 para omitir la compilación de classicladder])
   fi
 fi
 
@@ -864,12 +905,12 @@ AC_SUBST(GTK2_VER)
 AC_SUBST(GTK2_LIBS)
 AC_SUBST(GTK2_CFLAGS)
 
-##############################################################################
-# Subsection 3.6 - check for utility programs needed to build and run EMC    #
-#                                                                            #
-# Check for all the utility programs we need to build and install emc        #
-# as well as those we use in the emc scripts...                              #
-##############################################################################
+############################################################################################
+# Subsección 3.6: comprobar los programas de utilidad necesarios para crear y ejecutar EMC #
+#                                                                                          #
+# Comprobar todos los programas de utilidad que necesitamos para crear e instalar EMC      #
+# así como aquellos que usamos en los scripts de EMC...                                    #
+############################################################################################
 
 SPATH=$PATH:/usr/local/sbin:/usr/sbin:/sbin
 AC_PROG_MAKE_SET
@@ -880,97 +921,97 @@ AC_PATH_PROG(INSTALL, install)
 AC_PATH_PROG(SED, sed, "none")
 if test $SED = "none"
 then
-    AC_MSG_ERROR([sed not found])
+    AC_MSG_ERROR([sed no encontrado])
 fi
 
 AC_PATH_PROG(PS, ps, "none")
 if test $PS = "none"
 then
-    AC_MSG_ERROR([ps not found])
+    AC_MSG_ERROR([ps no encontrado])
 fi
 
 AC_PATH_PROG(KILL, kill, "none")
 if test $KILL = "none"
 then
-    AC_MSG_ERROR([kill not found])
+    AC_MSG_ERROR([kill no encontrado])
 fi
 
 AC_PATH_PROG(WHOAMI, whoami, "none")
 if test $WHOAMI = "none"
 then
-    AC_MSG_ERROR([whoami not found])
+    AC_MSG_ERROR([whoami no encontrado])
 fi
 
 AC_PATH_PROG(AWK, awk, "none")
 if test $AWK = "none"
 then
-    AC_MSG_ERROR([awk not found])
+    AC_MSG_ERROR([awk no encontrado])
 fi
 
 if test "$RTS" != uspace; then
-    # Module utilities not needed for uspace
+    # Utilidades de módulo no necesarias para uspace
     AC_PATH_PROG(INSMOD, insmod, "none", $SPATH)
     if test $INSMOD = "none"
     then
-        AC_MSG_ERROR([insmod not found])
+        AC_MSG_ERROR([insmod no encontrado])
     fi
 
     AC_PATH_PROG(RMMOD, rmmod, "none", $SPATH)
     if test $RMMOD = "none"
     then
-        AC_MSG_ERROR([rmmod not found])
+        AC_MSG_ERROR([rmmod no encontrado])
     fi
 
     AC_PATH_PROG(LSMOD, lsmod, "none", $SPATH)
     if test $LSMOD = "none"
     then
-        AC_MSG_ERROR([lsmod not found])
+        AC_MSG_ERROR([lsmod no encontrado])
     fi
 fi
 
 AC_PATH_PROG(PIDOF, pidof, "none", $SPATH)
 if test $PIDOF = "none"
 then
-    AC_MSG_ERROR([pidof not found])
+    AC_MSG_ERROR([pidof no encontrado])
 fi
 
 AC_PATH_PROG(IPCS, ipcs, "none")
 if test $IPCS = "none"
 then
-    AC_MSG_ERROR([ipcs not found])
+    AC_MSG_ERROR([ipcs no encontrado])
 fi
 
 AC_PATH_PROG(FUSER, fuser, "none", $SPATH)
 if test $FUSER = "none"
 then
-    AC_MSG_ERROR([fuser not found])
+    AC_MSG_ERROR([fuser no encontrado])
 fi
 
 AC_PATH_PROGS(YAPPS, yapps yapps2, "none", $SPATH)
 if test $YAPPS = "none"
 then
-    AC_MSG_ERROR([yapps/yapps2 and not found])
+    AC_MSG_ERROR([yapps/yapps2 no encontrado])
 fi
 AC_SUBST(YAPPS)
 
-# MANDB empty is handled in doc/Submakefile
+# MANDB vacío se maneja en doc/Submakefile
 AC_PATH_PROG(MANDB, mandb, "")
 
 AC_PATH_PROG(INTLTOOL_EXTRACT, intltool-extract, "none", $SPATH)
 if test $INTLTOOL_EXTRACT = "none"
 then
-    AC_MSG_ERROR([intltool-extract not found])
+    AC_MSG_ERROR([intltool-extract no encontrado])
 fi
 
 AC_ARG_WITH(rmmod,
     AS_HELP_STRING(
         [--with-rmmod=PATH],
-        [Location of the rmmod program to use.]
+        [Ubicación del programa rmmod a utilizar.]
     ),
     [
 	case "$withval" in
 	"" | y | ye | yes)
-	    AC_MSG_ERROR([You must supply an argument to --with-rmmod.])
+	    AC_MSG_ERROR([Debe proporcionar un argumento a --with-rmmod.])
 	  ;;
 	n | no | none)
 	    RMMOD=""
@@ -986,12 +1027,12 @@ AC_ARG_WITH(rmmod,
 AC_ARG_WITH(insmod,
     AS_HELP_STRING(
         [--with-insmod=PATH],
-        [Location of the insmod program to use.]
+        [Ubicación del programa insmod a utilizar.]
     ),
     [
 	case "$withval" in
 	"" | y | ye | yes)
-	    AC_MSG_ERROR([You must supply an argument to --with-insmod.])
+	    AC_MSG_ERROR([Debe proporcionar un argumento a --with-insmod.])
 	  ;;
 	n | no | none)
 	    INSMOD=""
@@ -1006,29 +1047,30 @@ AC_ARG_WITH(insmod,
 
 AC_PATH_PROGS(YAPPS, [yapps yapps2])
 if test -z "$YAPPS"; then
-  AC_MSG_ERROR([yapps is required to build LinuxCNC
-install with "sudo apt-get install yapps2"])
+  AC_MSG_ERROR([Se requiere yapps para construir LinuxCNC
+instalar con "sudo apt-get install yapps2"])
 fi
 AC_SUBST(YAPPS)
 
-##############################################################################
-# Subsection 3.7 - check for programs needed to build documentation          #
-#                                                                            #
-# Check for programs we need to build and install docs.                      #
-# (Optional, if not present, just don't build the docs.)                     #
-##############################################################################
+##################################################################################
+# Subsección 3.7: comprobar los programas necesarios para crear la documentación #
+#                                                                                #
+# Comprobar los programas que necesitamos para crear e instalar la documentación.#
+# (Opcional, si no están presentes, simplemente no cree la documentación).       #
+##################################################################################
 
-AX_BOOST_BASE(,,AC_MSG_ERROR([libboost not found]))
+AX_BOOST_BASE(,,AC_MSG_ERROR([libboost no encontrado]))
 AX_PYTHON
 AC_PATH_PROG(PYTHON,[$PYTHON_BIN])
-AX_PYTHON_DEVEL(,,AC_MSG_ERROR([python-dev not found]))
-AX_BOOST_PYTHON(,,AC_MSG_ERROR([libboost-python not found]))
+AX_PYTHON_DEVEL(,,AC_MSG_ERROR([python-dev no encontrado]))
+AX_BOOST_PYTHON(,,AC_MSG_ERROR([libboost-python no encontrado]))
 
-AC_MSG_CHECKING([whether to build documentation])
+# Notificar verificando documentación
+AC_MSG_CHECKING([si se construye la documentación])
 AC_ARG_ENABLE(build-documentation,
     AS_HELP_STRING(
         [--enable-build-documentation[=FORMAT]],
-        [Build documentation.  FORMAT may be "Y" for both or "pdf" or "html" if only one format is desired.]
+        [ Compilación de la documentación. FORMAT puede ser "Y" para ambos formatos o "pdf" o "html" si solo se desea un formato.]
     ),
     [
         case "$enableval" in
@@ -1036,19 +1078,19 @@ AC_ARG_ENABLE(build-documentation,
             BUILD_DOCS=yes
             BUILD_DOCS_PDF=yes
             BUILD_DOCS_HTML=yes
-            AC_MSG_RESULT([PDF and HTML requested])
+            AC_MSG_RESULT([solicitado PDF y HTML])
         ;;
         html)
             BUILD_DOCS=yes
             BUILD_DOCS_PDF=no
             BUILD_DOCS_HTML=yes
-            AC_MSG_RESULT([HTML requested])
+            AC_MSG_RESULT([solicitado HTML])
 	;;
         pdf)
             BUILD_DOCS=yes
             BUILD_DOCS_PDF=yes
             BUILD_DOCS_HTML=no
-            AC_MSG_RESULT([PDF requested])
+            AC_MSG_RESULT([solicitado PDF])
 	;;
         *)
             BUILD_DOCS=no
@@ -1061,20 +1103,21 @@ AC_ARG_ENABLE(build-documentation,
         AC_MSG_RESULT([no])
     ])
 
-# Programs required for building all documentation
+# Programas necesarios para construir toda la documentación
 if ( test "$BUILD_DOCS" = "yes" ) ; then
     AC_PATH_PROG(ASCIIDOC,asciidoc,"none")
     if ( test "none" = "$ASCIIDOC" ) ; then
-	AC_MSG_WARN([no AsciiDoc, documentation cannot be built])
+	AC_MSG_WARN([sin AsciiDoc, no se puede construir la documentación])
         BUILD_DOCS=no
     fi
 
     AC_PATH_PROG(A2X,a2x,"none")
     if ( test "none" = "$A2X" ) ; then
-	AC_MSG_WARN([no a2x, documentation cannot be built])
+	AC_MSG_WARN([sin a2x, no se puede construir la documentación])
         BUILD_DOCS=no
     fi
 
+	# Notificar verificando
     AC_MSG_CHECKING([whether to specify latex.encoding])
     temp_asciidoc=`mktemp --suffix=.txt`
     cat > $temp_asciidoc <<EOF
@@ -1098,19 +1141,20 @@ EOF
 
     AC_PATH_PROG(DBLATEX,dblatex,"none")
     if ( test "none" = "$DBLATEX" ) ; then
-	AC_MSG_WARN([no dblatex, documentation cannot be built])
+	AC_MSG_WARN([sin dblatex, no se puede construir la documentación])
         BUILD_DOCS=no
     fi
 
     if ( test "$BUILD_DOCS" = "yes" ) ; then
-        AC_MSG_CHECKING([dblatex version])
+		# Notificar verificando versión de dblatex
+        AC_MSG_CHECKING([versión de dblatex])
         set -- `dblatex --version`; DBLATEX_VER=$3
         set -- `echo $DBLATEX_VER | sed 's/[[.-]]/ /g'`
         micro=`echo $3 | sed 's/\([[0-9]]*\).*/\1/g'`
 
         if test $1 -eq 0 -a \( $2 -lt 2 -o \( $2 -eq 2 -a ${micro:-0} -lt 12 \) \); then
-            AC_MSG_WARN([dblatex version $DBLATEX_VER less than 0.2.12.
-Documentation cannot be built.])
+            AC_MSG_WARN([versión de dblatex $DBLATEX_VER menor que 0.2.12.
+No se puede construir la documentación.])
             BUILD_DOCS=no
         else
             AC_MSG_RESULT([$DBLATEX_VER])
@@ -1120,7 +1164,7 @@ Documentation cannot be built.])
     if ( test "$BUILD_DOCS" = "yes" ) ; then
         AC_PATH_PROG(SOURCE_HIGHLIGHT,source-highlight,"none")
         if ( test "none" = "$SOURCE_HIGHLIGHT" ) ; then
-            AC_MSG_WARN([no source-highlight, documentation cannot be built])
+            AC_MSG_WARN([sin source-highlight, no se puede construir la documentación])
             BUILD_DOCS=no
         fi
     fi
@@ -1128,7 +1172,7 @@ Documentation cannot be built.])
     if ( test "$BUILD_DOCS" = "yes" ) ; then
         AC_PATH_PROG(CONVERT,convert,"none")
         if ( test "none" = "$CONVERT" ) ; then
-            AC_MSG_WARN([no convert, documentation cannot be built])
+            AC_MSG_WARN([sin convert, no se puede construir la documentación])
             BUILD_DOCS=no
         fi
     fi
@@ -1136,7 +1180,7 @@ Documentation cannot be built.])
     if ( test "$BUILD_DOCS" = "yes" ) ; then
         AC_PATH_PROG(GS,gs,"none")
         if ( test "none" = "$GS" ) ; then
-            AC_MSG_WARN([no gs, documentation cannot be built])
+            AC_MSG_WARN([sin gs, no se puede construir la documentación])
             BUILD_DOCS=no
         fi
     fi
@@ -1146,7 +1190,7 @@ fi
 if ( test "$BUILD_DOCS_PDF" = "yes" ) ; then
     AC_PATH_PROG(PDFLATEX,pdflatex,"none")
     if ( test "none" = "$PDFLATEX" ) ; then
-	AC_MSG_WARN([no pdflatex, PDF documentation cannot be built])
+	AC_MSG_WARN([sin pdflatex, no se puede construir la documentación en PDF])
         BUILD_DOCS=no
     fi
 fi
@@ -1155,19 +1199,20 @@ fi
 if ( test "$BUILD_DOCS_HTML" = "yes" ) ; then
     AC_PATH_PROG(XSLTPROC,xsltproc,"none")
     if ( test "none" = "$XSLTPROC" ) ; then
-	AC_MSG_WARN([no xsltproc, HTML documentation cannot be built])
+	AC_MSG_WARN([sin xsltproc, no se puede construir la documentación en HTML])
         BUILD_DOCS=no
     fi
 
     AC_PATH_PROG(DVIPNG,dvipng,"none")
     if ( test "none" = "$DVIPNG" ) ; then
-	AC_MSG_WARN([no dvipng, HTML documentation cannot be built])
+	AC_MSG_WARN([sin dvipng, no se puede construir la documentación en HTML])
         BUILD_DOCS=no
     fi
 
+# Notificar verificando
     AC_MSG_CHECKING([for HTML support in groff])
     if ! groff -Thtml < /dev/null > /dev/null 2>&1 ; then
-        AC_MSG_WARN([no groff -Thtml, HTML documentation cannot be built])
+        AC_MSG_WARN([sin groff -Thtml, no se puede construir la documentación en HTML])
         BUILD_DOCS=no
     else
         AC_MSG_RESULT(yes)
@@ -1175,8 +1220,8 @@ if ( test "$BUILD_DOCS_HTML" = "yes" ) ; then
 
     AC_PATH_PROG(CHECKLINK,checklink,"none")
     if ( test "none" = "$CHECKLINK" ) ; then
-	AC_MSG_WARN([no checklink, HTML documentation cannot be built
-install with "sudo apt-get install w3c-linkchecker"])
+	AC_MSG_WARN([sin checklink, no se puede construir la documentación en HTML
+instalar con "sudo apt-get install w3c-linkchecker"])
         BUILD_DOCS=no
     fi
 fi
@@ -1184,7 +1229,7 @@ fi
 AC_ARG_ENABLE(build-documentation-translation,
     AS_HELP_STRING(
         [--disable-build-documentation-translation],
-        [Disable building documentation in languages other than English.]
+        [Deshabilitar la construcción de documentación en idiomas distintos del inglés.]
     ),
     [
     case "$enableval" in
@@ -1207,9 +1252,9 @@ if ( test "$BUILD_DOCS" = "yes" && test "$BUILD_DOCS_TRANSLATED_EXPLICIT" != "no
     then
         if test "$BUILD_DOCS_TRANSLATED_EXPLICIT" = "not_set"
         then
-            AC_MSG_WARN([po4a not found, not building translated docs])
+            AC_MSG_WARN([po4a no encontrado, no se construyen documentos traducidos])
         else
-            AC_MSG_ERROR([po4a not found, not building translated docs])
+            AC_MSG_ERROR([po4a no encontrado, no se construyen documentos traducidos])
         fi
         BUILD_DOCS_TRANSLATED=no
     else
@@ -1223,9 +1268,9 @@ if ( test "$BUILD_DOCS" = "yes" && test "$BUILD_DOCS_TRANSLATED_EXPLICIT" != "no
         if dpkg --compare-versions 0.67 gt "$V"; then
             if test "$BUILD_DOCS_TRANSLATED_EXPLICIT" = "not_set"
             then
-                AC_MSG_WARN([po4a version too old, need version 0.67 or newer, not building translated docs])
+                AC_MSG_WARN([La versión de po4a es demasiado antigua, se necesita la versión 0.67 o más nueva, no se crean documentos traducidos])
             else
-                AC_MSG_ERROR([po4a version too old, need version 0.67 or newer, not building translated docs])
+                AC_MSG_ERROR([La versión de po4a es demasiado antigua, se necesita la versión 0.67 o más nueva, no se crean documentos traducidos])
             fi
 	    BUILD_DOCS_TRANSLATED=no
         fi
@@ -1240,13 +1285,14 @@ if test "$RTS" '!=' uspace
 then
 for m in adeos rtai_hal rtai_ksched rtai_sched rtai_fifos rtai_sem rtai_math \
 ; do
-    AC_MSG_CHECKING([for $m])
+	# Notificar verificando para la lista $m
+    AC_MSG_CHECKING([para $m])
     TMP=$(find $MODULE_DIR -name $m$MODEXT 2>/dev/null)
     if test -z "$TMP"; then
         TMP=$(find /lib/modules/$KERNEL_VERS -name $m$MODEXT)
     fi
     eval MODPATH_$m=${TMP/$KERNEL_VERS/\\\$\\\(uname\\\ -r\\\)}
-    AC_MSG_RESULT([${TMP:-not found}])
+    AC_MSG_RESULT([${TMP:-no encontrado}])
 done
 
 AC_SUBST(MODPATH_adeos)
@@ -1258,25 +1304,25 @@ AC_SUBST(MODPATH_rtai_sem)
 AC_SUBST(MODPATH_rtai_math)
 fi
 
-# Checks for header files.
+# Checks para headers.
 
 ##############################################################################
-# Section 4.1 - Important headers, functions and global defines.             #
+# Sección 4.1 – Encabezados importantes, funciones y definiciones globales.  #
 #                                                                            #
 ##############################################################################
 
-# This section gets inserted in to config.h.in when autoheader is run.
-# Global and common defines should be here rather than duplicated in
-# multiple places. Keep screwball constructs out of this, and it can
-# be used in both kernel space and user space.
+# Esta sección se inserta en config.h.in cuando se ejecuta autoheader.
+# Las definiciones globales y comunes deberían estar aquí en lugar de duplicarse en
+# varios lugares. Mantenga las construcciones raras fuera de esto y podrá
+# usarse tanto en el espacio del kernel como en el espacio del usuario.
 AH_TOP([/********************************************************************
 * Description: config.h
 *
-*	Common defines used in many emc2 source files.
-*       To add to this file, edit Section 4.1 in configure.ac
-*       and then run autoheader.
+*	Definiciones comunes utilizadas en muchos archivos fuente de emc2
+*   Para agregar a este archivo, edite la Sección 4.1 en configure.ac
+*   y luego ejecute autoheader.
 *
-* Author: Autogenerated by autoheader
+* Author: Autogenerado por autoheader
 * License: LGPL Version 2
 * System: Linux
 *
@@ -1286,25 +1332,31 @@ AH_TOP([/********************************************************************
 #define EMC2_CONFIG_H
 ])
 
+# Chequeo io.h
 AC_CHECK_HEADERS([sys/io.h])
 
+# Incluir tal cual, con clave unica _GNU_SOURCE
 AH_VERBATIM([_GNU_SOURCE],
-[/* Enable GNU extensions on systems that have them.  */
+[/* Habilitar extensiones GNU en sistemas que las tengan.*/
 #ifndef _GNU_SOURCE
 # define _GNU_SOURCE
 #endif
 ])
 
+# Chequeo sys/wait.h
 AC_HEADER_SYS_WAIT
+# Chequeo de funcion semtimedop. Ver $ man SEMOP (System V semaphore operations)
 AC_CHECK_FUNCS(semtimedop)
 
-AC_MSG_CHECKING([for optreset])
+# Notificar verificando optreset
+AC_MSG_CHECKING([para optreset])
+# compilar/linkar 
 AC_LINK_IFELSE([AC_LANG_PROGRAM([[
 #include <unistd.h>
 extern int optreset;
     ]], [[ optreset = 1; ]])],[
 	HAVE_OPTRESET=yes
-        AC_DEFINE([HAVE_OPTRESET], [], [Define to 1 if getopt has the BSD 'optreset' extension])
+        AC_DEFINE([HAVE_OPTRESET], [], [Definir como 1 si getopt tiene la extensión BSD 'optreset'])
 ],[HAVE_OPTRESET=no])
 AC_MSG_RESULT($HAVE_OPTRESET)
 AC_SUBST([HAVE_OPTRESET])
@@ -1319,14 +1371,14 @@ AC_SEARCH_LIBS(dlopen, [c dl], [
     (*)   LIBDL="$LIBS"
     esac
 
-    AC_DEFINE([LIBDL], [$LIBDL], [Define to the library that dlopen comes from, if it is not a part of libc])
-], [AC_MSG_ERROR([not found])])
+    AC_DEFINE([LIBDL], [$LIBDL], [Define la biblioteca de donde proviene dlopen, si no es parte de libc])
+], [AC_MSG_ERROR([no encontrado])])
 AC_SUBST([LIBDL])
 LIBS=$LIBS_hold
 
 AC_SEARCH_LIBS(clock_nanosleep, [rt], [
     AC_DEFINE([HAVE_CLOCK_NANOSLEEP], 1,
-        [Define to 1 if clock_nanosleep is available (in -lc or -lrt)])
+        [Definir en 1 si clock_nanosleep está disponible (en -lc o -lrt)])
 ])
 
 AH_BOTTOM(#endif
@@ -1339,12 +1391,13 @@ AH_BOTTOM(#endif
 # so testing is done by finding tclConfig.sh and tkConfig.sh                 #
 # if the search fails the traditional check is done                          #
 ##############################################################################
+# Notificar verificando tcl
 AC_MSG_CHECKING([for tcl])
 
 AC_ARG_WITH(tclConfig,
     AS_HELP_STRING(
         [--with-tclConfig=PATH],
-        [Specify the path to tclConfig.]
+        [Especifique el path a tclConfig.]
     ),
     [
         TCLCONFIG=$withval
@@ -1361,25 +1414,26 @@ if (test "x$TCLCONFIG" = "x"); then
 fi
 
 if (test "x$TCLCONFIG" = "x"); then
-   AC_MSG_RESULT([tclConfig.sh not found, trying tcl.h and libs.
-		  If it doesn't work try running ./configure --with-tclConfig=<path to tclConfig.sh>])
+   AC_MSG_RESULT([tclConfig.sh no encontrado, intentando tcl.h y libs.
+		  Si no funciona, pruebe con ./configure --with-tclConfig=<path to tclConfig.sh>])
    AC_CHECK_HEADERS([tcl.h])
-   AC_SEARCH_LIBS(Tcl_Init,[tcl tcl8.7 tcl8.6],[],[AC_MSG_ERROR([tcl lib not found])])
+   AC_SEARCH_LIBS(Tcl_Init,[tcl tcl8.7 tcl8.6],[],[AC_MSG_ERROR([tcl lib not encontrada])])
 else
 # tclConfig.sh found,
 # extracting vars
-   AC_MSG_RESULT([$TCLCONFIG found])
+   AC_MSG_RESULT([$TCLCONFIG encontrada])
    . "$TCLCONFIG"
    TCL_CFLAGS="$TCL_INCLUDE_SPEC -DUSE_TCL_STUBS"
    TCL_LIBS="$TCL_STUB_LIB_SPEC"
 fi
 
-AC_MSG_CHECKING([for tk])
+# Notificar verificando
+AC_MSG_CHECKING([para tk])
 
 AC_ARG_WITH(tkConfig,
     AS_HELP_STRING(
         [--with-tkConfig=PATH],
-        [Specify the path to tkConfig.]
+        [Especifica el path a tkConfig.]
     ),
     [
         TKCONFIG=$withval
@@ -1401,23 +1455,23 @@ if (test "x$TKCONFIG" = "x"); then
 fi
 
 if (test "x$TKCONFIG" = "x"); then
-   AC_MSG_RESULT([tkConfig.sh not found, trying tk.h and libs.
-		  If it doesn't work try running ./configure --with-tkConfig=<path to tkConfig.sh>])
+   AC_MSG_RESULT([tkConfig.sh no encontrado, intentando con tk.h y libs.
+		  Si no funciona, pruebe con  ./configure --with-tkConfig=<path to tkConfig.sh>])
    AC_CHECK_HEADERS([tk.h])
-   AC_SEARCH_LIBS(Tk_Init,[tk tcl8.7 tcl8.6],[],[AC_MSG_ERROR([tk lib not found])])
+   AC_SEARCH_LIBS(Tk_Init,[tk tcl8.7 tcl8.6],[],[AC_MSG_ERROR([tk lib no encontrada])])
 else
 # tkConfig.sh found,
 # extracting vars
-   AC_MSG_RESULT([$TKCONFIG found])
+   AC_MSG_RESULT([$TKCONFIG encontrada])
    . "$TKCONFIG"
    TK_CFLAGS="$TK_INCLUDE_SPEC $TK_XINCLUDES"
    TK_LIBS="$TK_LIBS $TK_LIB_SPEC"
 fi
 
 if ! test -z "$TCL_VERSION" && ! test -z "$TK_VERSION" && ! test "$TCL_VERSION" = "$TK_VERSION" ; then
-    AC_MSG_ERROR([Tcl and Tk versions must be the same, but configure found
-Tcl $TCL_VERSION and Tk $TK_VERSION.  You can use --with-tkConfig= and --with-tclConfig=
-to override the autodetected versions.])
+    AC_MSG_ERROR([Tcl y Tk deben ser de la misma versión, pero configure encuentra 
+Tcl $TCL_VERSION y Tk $TK_VERSION.  Puede usar --with-tkConfig= and --with-tclConfig=
+para ignorar las versiones autodetectadas.])
 fi
 
 if test -f $TCL_EXEC_PREFIX/bin/wish$TCL_VERSION; then
@@ -1439,48 +1493,52 @@ fi
 AC_ARG_ENABLE(check-runtime-deps,
     AS_HELP_STRING(
         [--disable-check-runtime-deps],
-        [Skip checks for runtime requirements not needed during the
-        build process.]
+        [Omitir comprobaciones de requisitos de tiempo de ejecución que no son necesarios durante el
+        proceso de compilación.]
     ),
     [RUNTIME_CHECK=$enableval],
     [RUNTIME_CHECK=yes])
-AC_MSG_CHECKING([whether to check for runtime dependencies])
+AC_MSG_CHECKING([si chequear para dependencias runtime])
 AC_MSG_RESULT($RUNTIME_CHECK)
 
 if test "$RUNTIME_CHECK" = "yes"; then
-    AC_MSG_CHECKING([for BWidget using $TCLSH])
+	# Notificar verificando
+    AC_MSG_CHECKING([para BWidget usando $TCLSH])
     if (unset DISPLAY; echo ["catch { package require bwidget }; exit [expr [lsearch [package names] BWidget] == -1]"] | $TCLSH); then
-        AC_MSG_RESULT([found])
+        AC_MSG_RESULT([encontrado])
     else
         AC_MSG_RESULT(no)
-        AC_MSG_ERROR([BWidget not found!
-    install with "sudo apt-get install bwidget"])
+        AC_MSG_ERROR([BWidget no encontrado!
+    instalar con "sudo apt-get install bwidget"])
     fi
 
-    AC_MSG_CHECKING([for BLT using $TCLSH])
+	# Notificar verificando
+    AC_MSG_CHECKING([para BLT usando $TCLSH])
     if (unset DISPLAY; echo ['if [catch {package require BLT}] { exit 1; } else { exit 0; }'] | $TCLSH); then
-        AC_MSG_RESULT([found])
+        AC_MSG_RESULT([encontrado])
     else
-        AC_MSG_RESULT([not found])
+        AC_MSG_RESULT([no encontrado])
     fi
 
+	# Notificar verificando
     AC_MSG_CHECKING([for tclX using $TCLSH])
     if (unset DISPLAY; echo ["catch { package require Tclx }; exit [expr [lsearch [package names] Tclx] == -1]"] | $TCLSH); then
-        AC_MSG_RESULT([found])
+        AC_MSG_RESULT([encontrado])
     else
         AC_MSG_RESULT(no)
-        AC_MSG_ERROR([Tclx not found!
-    install with "sudo apt-get install tclx"])
+        AC_MSG_ERROR([Tclx no encontrado!
+    instalar con "sudo apt-get install tclx"])
     fi
 
-    AC_MSG_CHECKING([for python pango module])
+	# Notificar verificando
+    AC_MSG_CHECKING([para módulo python pango])
     if $PYTHON -c "import gi;gi.require_version('Pango', '1.0');from gi.repository import Pango"; then
-        AC_MSG_RESULT([found])
+        AC_MSG_RESULT([encontrado])
     else
         AC_MSG_RESULT(no)
         AC_MSG_ERROR(
-[Python pango module not found!
-install with "sudo apt-get install python3-gi"])
+[Python pango module no encontrado!
+instalar con "sudo apt-get install python3-gi"])
     fi
 fi
 
@@ -1519,7 +1577,7 @@ AC_CHECK_LIB(Xinerama, XineramaQueryExtension,
 	    [HAVE_XINERAMA=no])
 
 if test "x$HAVE_XINERAMA" = "xno"; then
-    AC_MSG_ERROR([Xinerama library or headers not found])
+    AC_MSG_ERROR([Libreria o headers Xinerama no encontrados])
 fi
 
 #clean out LIBS
@@ -1530,53 +1588,54 @@ LIBS=
 AC_CHECK_HEADERS(readline/readline.h, [HAVE_READLINE=yes], [HAVE_READLINE=no])
 AC_CHECK_HEADERS(readline/history.h, [], [HAVE_READLINE=no])
 
-echo "Trying readline without -ltermcap"
+echo "Intentando readline sin -ltermcap"
 AC_CHECK_LIB(readline, readline, [HAVE_READLINE_NOTERMCAP=yes], [])
 unset ac_cv_lib_readline_readline
-echo "Trying readline with -ltermcap"
+echo "Intentando readline con -ltermcap"
 AC_CHECK_LIB(readline, readline, [HAVE_READLINE_TERMCAP=yes], [], -ltermcap)
 unset ac_cv_lib_readline_readline
 
 if test "x$HAVE_READLINE_NOTERMCAP" = "xyes"; then
-    echo "Readline does not require -ltermcap"
+    echo "Readline no requiere -ltermcap"
     READLINE_LIBS="-lreadline"
 elif test "x$HAVE_READLINE_TERMCAP" = "xyes"; then
-    echo "Readline requires -ltermcap"
+    echo "Readline requiere -ltermcap"
     READLINE_LIBS="-lreadline -ltermcap"
 else
     HAVE_READLINE=no
 fi
 
-AC_MSG_CHECKING([whether readline license is compatible with GPL-2])
+# Notificar verificando
+AC_MSG_CHECKING([si la licencia readline es compatible con GPL-2])
 AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
         #include <stdio.h>
         #include <readline/readline.h>
     ]], [[
         #if RL_VERSION_MAJOR > 5
-        #error Readline version 6 and up are not compatible with GPL-2
+        #error Readline versión 6 y superiores no son compatibles con GPL-2
         #endif
     ]])],[AC_MSG_RESULT(yes)],[
         AC_MSG_RESULT(no)
         AC_MSG_WARN(
-[The LinuxCNC binary you are building may not be
-distributable due to a license incompatibility with LinuxCNC (some portions
-GPL-2 only) and Readline version 6 and greater (GPL-3 or later).])
+[El binario LinuxCNC que estás creando puede no ser
+distribuible debido a una incompatibilidad de licencia con LinuxCNC (algunas partes
+solo GPL-2) y Readline versión 6 y posteriores (GPL-3 o posterior).])
         if $NONDISTRIBUTABLE; then
             AC_MSG_WARN(
 [User requested to enable non-distributable builds.  Continuing.])
         else
             AC_MSG_ERROR(
-[To configure LinuxCNC in this way, you must
-invoke configure with "--enable-non-distributable=yes".  Note that on
-Debian-based systems, you may be able to use libeditreadline-dev or
-libreadline-gplv2-dev instead of libreadline-dev.])
+[Para configurar LinuxCNC de esta manera, debe
+invocar configure con "--enable-non-distributable=yes". Tenga en cuenta que en
+sistemas basados ​​en Debian, es posible que pueda utilizar libeditreadline-dev o
+libreadline-gplv2-dev en lugar de libreadline-dev.])
         fi
 ])
 
 if test "x$HAVE_READLINE" = "xyes"; then
-    AC_DEFINE([HAVE_READLINE], [], [Define to 1 if you have the 'readline' library (-lreadline) and required headers])
+    AC_DEFINE([HAVE_READLINE], [], [Definido a 1 si tiene la biblioteca 'readline' (-lreadline) y los encabezados requeridos])
 else
-    AC_MSG_ERROR([Required library 'readline' missing.])
+    AC_MSG_ERROR([Falta libreria 'readline'.])
 fi
 AC_SUBST([HAVE_READLINE])
 AC_SUBST([READLINE_LIBS])
@@ -1591,7 +1650,7 @@ AC_SUBST([READLINE_LIBS])
 # if you don't have nls tools, allow a way out!
 
 AC_ARG_ENABLE(nls,
-    AS_HELP_STRING([--disable-nls], [Don't use NLS.]),
+    AS_HELP_STRING([--disable-nls], [No usar NLS.]),
               USE_NLS=no, USE_NLS=yes)
 AC_SUBST(USE_NLS)
 
@@ -1616,13 +1675,13 @@ if test "$USE_NLS" = "yes"; then
   AC_ARG_WITH(locale-dir,
   AS_HELP_STRING(
     [--with-locale-dir=DIR],
-    [Location of the locale file(s) [DATADIR/locale].]
+    [Localización de archivos locale [DATADIR/locale].]
   ),[
     if test x$withval = xyes; then
-      AC_MSG_WARN(Usage is: --with-locale-dir=basedir)
+      AC_MSG_WARN(El uso es: --with-locale-dir=basedir)
     else
       if test x$withval = xno; then
-        AC_MSG_WARN(Usage is: --with-locale-dir=basedir)
+        AC_MSG_WARN(El uso es: --with-locale-dir=basedir)
       else
         LOCALEDIR=$withval
       fi
@@ -1637,28 +1696,30 @@ LIBS="$X_LIBS $temp_LIBS"
 AC_PATH_PROG(XGETTEXT,xgettext,none)
 XGETTEXT_TCL_WORKS=no
 if test "$XGETTEXT" = "none"; then
-   AC_MSG_ERROR(install gettext 0.14.5 or above)
+   AC_MSG_ERROR(instalar gettext 0.14.5 o superior)
 fi
 AC_SUBST(XGETTEXT)
 
 AC_PATH_PROG(MSGFMT,msgfmt,none)
 if test "$MSGFMT" = "none"; then
-   AC_MSG_ERROR(install gettext 0.14.5 or above)
+   AC_MSG_ERROR(instalar gettext 0.14.5 o superior)
 fi
 AC_SUBST(MSGFMT)
 
 if test "$PYTHON" = "none"; then
-    AC_MSG_ERROR([Python missing.  Install it or specify --disable-python to skip the parts of LinuxCNC that depend on Python])
+    AC_MSG_ERROR([Python no encontrado.  Instálelo o especifique --disable-python para omitir las partes de LinuxCNC que dependen de Python])
 fi
 
-AC_MSG_CHECKING([python version])
+# Notificar verificando
+AC_MSG_CHECKING([versión python])
 if ! $PYTHON -c 'import sys;raise SystemExit(sys.hexversion<0x2070000)'
 then
-    AC_MSG_ERROR(Python version too old (2.7 or newer required))
+    AC_MSG_ERROR(Versión Python demasiado antigua (se requiere 2.7 o superior))
 fi
 AC_MSG_RESULT(OK)
 
-AC_MSG_CHECKING([match between tk and Tkinter versions])
+# Notificar verificando versiones tk y Tkinter
+AC_MSG_CHECKING([coincidencia de versiones tk y Tkinter])
 if $PYTHON -c 'import sys;raise SystemExit(sys.hexversion<0x3040000)'
 then
 
@@ -1674,30 +1735,33 @@ fi
 
 if test "$PYTHON_TCL_VERSION" != "$TCL_VERSION"; then
     AC_MSG_RESULT([TCL mismatch: $TCL_VERSION vs $PYTHON_TCL_VERSION])
-    AC_MSG_ERROR([Python requires use of Tcl $PYTHON_TCL_VERSION and Tk $PYTHON_TK_VERSION.
-Install this version and specify --with-tclConfig and --with-tkConfig if necessary])
+    AC_MSG_ERROR([Python requiere usar Tcl $PYTHON_TCL_VERSION y Tk $PYTHON_TK_VERSION.
+Instalar esa versión y especificar --with-tkConfig  y --with-tkConfig si es necesario])
 fi
 if test "$PYTHON_TK_VERSION" != "$TK_VERSION"; then
-    AC_MSG_RESULT([Tk mismatch: $TK_VERSION vs $PYTHON_TK_VERSION])
-    AC_MSG_ERROR(["Python requires use of Tk $TK_VERSION.  Install this version and specify --with-tkConfig if necessary"])
+    AC_MSG_RESULT([Tk no coincide: $TK_VERSION vs $PYTHON_TK_VERSION])
+    AC_MSG_ERROR(["Python requiere usar Tk $TK_VERSION.  Instalar esa versión y especificar --with-tkConfig si es necesario"])
 fi
 AC_MSG_RESULT([$PYTHON_TK_VERSION])
 
-AC_MSG_CHECKING(for site-package location)
+# Notificar verificando site-package
+AC_MSG_CHECKING(para localización site-package)
 SITEPY="$($PYTHON -c 'import sysconfig; s = sysconfig.get_scheme_names(); m=list(set(("deb_system", "rpm_prefix")) & set(s)); print(sysconfig.get_path("platlib", m.__getitem__(0))) if m else print("/usr/lib/python3/dist-packages");')"
 AC_MSG_RESULT($SITEPY)
 
-AC_MSG_CHECKING(for working GLU quadrics)
+# Notificar verificando GLU quadrics
+AC_MSG_CHECKING(para trabajo GLU quadrics)
 AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
 #include <GL/gl.h>
 #include <GL/glu.h>
 ]], [[GLUquadric *q;]])],[AC_MSG_RESULT(yes)],[
-            AC_MSG_ERROR([Required GLU library missing.  Install it or specify --disable-python to skip the parts of LinuxCNC that depend on Python])
+            AC_MSG_ERROR([Falta la libreria GLU.  Instálela o especifique --disable-python para omitir las partes de LinuxCNC que dependen de Python])
 
 ])
 
-AC_MSG_CHECKING(for Xmu headers)
-AC_CHECK_HEADERS(X11/Xmu/Xmu.h,[],[AC_MSG_ERROR([Required Xmu header missing.  Install it, or specify --disable-python to skip the parts of LinuxCNC that depend on Python])])
+# Notificar verificando
+AC_MSG_CHECKING(para Xmu headers)
+AC_CHECK_HEADERS(X11/Xmu/Xmu.h,[],[AC_MSG_ERROR([Falta el encabezado Xmu requerido. Instálelo o especifique --disable-python para omitir las partes de LinuxCNC que dependen de Python])])
 
 AC_SUBST([LIBPYTHON])
 AC_SUBST([SITEPY])
@@ -1708,7 +1772,10 @@ AC_SUBST([CXXFLAGS])
 AC_SUBST([LDFLAGS])
 
 ##############################################################################
-# files that get created by ./configure                                      #
+# archivos que se crean mediante ./configure                                 #
+# AC_CONFIG_FILES ( archivo …, [cmds], [init-cmds])                          #
+# Crea el directorio en el que se encuentra el archivo si no existe.         #
+# hay llamadas a comandos para algunos, como chmod.                          #
 ##############################################################################
 #AC_CONFIG_FILES([../configs/rtapi.conf ../configs/emc.conf ../configs/hal.conf config.h])
 AC_CONFIG_FILES([../scripts/rtapi.conf])
@@ -1758,47 +1825,49 @@ offbold () {
 echo ""
 echo ""
 echo "######################################################################"
-echo "#                LinuxCNC - Enhanced Machine Controller              #"
+echo "#           LinuxCNC - Controlador de Máquina Mejorado               #"
 echo "######################################################################"
 echo "#                                                                    #"
-echo "#   LinuxCNC is a software system for computer control of machine    #"
-echo "#   tools such as milling machines. LinuxCNC is released under the   #"
-echo "#   GPL.  Check out http://www.linuxcnc.org/ for more details.       #"
+echo "# LinuxCNC es un sistema de software para el control informático de  #"
+echo "# máquinas herramientas como fresadoras. LinuxCNC se distribuye bajo #"
+echo "# GPL. Visite http://www.linuxcnc.org/ para obtener más detalles.    #"
 echo "#                                                                    #"
 echo "#                                                                    #"
-echo "#   It seems that ./configure completed successfully.                #"
-echo "#   This means that RT is properly installed                         #"
-echo "#   If things don't work check config.log for errors & warnings      #"
+echo "#       Parece que ./configure se completó correctamente.            #"
+echo "#       Esto significa que RT está instalado correctamente.          #"
+echo "#       Si las cosas no funcionan, verifique config.log para         #"
+echo "#       ver si hay errores o advertencias                            #"
 echo "#                                                                    #"
-
 if test "xyes" = "x$RUN_IN_PLACE"; then
-echo "#   Next compile by typing                                           #"
+echo "#       Luego, compile escribiendo                                   #"
 echo "#         make                                                       #"
 echo "#         sudo make setuid                                           #"
 if test $RTS = uspace; then
-echo "#          (if realtime behavior and hardware access are required)   #"
+echo "# (si requiere comportamiento en tiempo real y acceso al hardware)   #"
 fi
 echo "#                                                                    #"
-echo "#   Before running the software, set the environment:                #"
-echo "#         . (top dir)/scripts/rip-environment                        #"
+echo "#         Antes de ejecutar el software, configure el entorno:       #"
+echo "#         . $BUILD_TOPLEVEL/scripts/rip-environment                #"
 else
 bold
-echo "#   warning: If you already have an installed linuxcnc, this will    #"
-echo "#         replace an existing installation.  If you have installed   #"
-echo "#         a linuxcnc package, this will damage the package.          #"
+echo "#    advertencia: si ya tiene instalado linuxcnc, esto reemplazará   #"
+echo "#          una instalación existente. Si ha instalado                #"
+echo "#         un paquete linuxcnc, esto dañará el paquete.               #"
 offbold
-echo "#   hint: To test a self-built version of linuxcnc without damaging  #"
-echo "#         the package version, don't specify a --prefix              #"
+echo "# sugerencia: para probar una versión de compilación propia de       #"
+echo "# linuxcnc sin dañar la versión del paquete,                         #"
+echo "# no especifique un --prefix #"
 echo "#                                                                    #"
-echo "#   Next compile by typing                                           #"
+echo "# Luego, compile escribiendo                                         #"
 echo "#         make                                                       #"
-echo "#   then install it by typing                                        #"
+echo "# luego instálelo escribiendo                                        #"
 echo "#         sudo make install                                          #"
 fi
 echo "#                                                                    #"
-echo "#   To run the software type                                         #"
-echo "#         linuxcnc                                                   #"
+echo "# Para ejecutar el software, ejecute                                 #"
+echo "# linuxcnc                                                           #"
 echo "#                                                                    #"
 echo "######################################################################"
 echo ""
 echo ""
+
