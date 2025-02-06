@@ -89,76 +89,76 @@ extern "C" {
 	EMCMOT_TELEOP,     /* establece modo en teleop */
 
 	EMCMOT_SPINDLE_SCALE,	/* establece el factor de escala para la velocidad del husillo */
-	EMCMOT_SS_ENABLE,		/* habilitar/deshabilitar el escalado de la velocidad del husillo */
-	EMCMOT_FEED_SCALE,		/* establece el factor de escala para la velocidad de avance */
-	EMCMOT_RAPID_SCALE,		/* establece el factor de escala para rápidos */
-	EMCMOT_FS_ENABLE,		/* habilitar/deshabilitar la velocidad de avance de escala */
-	EMCMOT_FH_ENABLE,		/* habilitar/deshabilitar feed_hold */
-	EMCMOT_AF_ENABLE,		/* habilitar/deshabilitar velocidad de avance adaptativa */
+	EMCMOT_SS_ENABLE,	/* habilitar/deshabilitar el escalado de la velocidad del husillo */
+	EMCMOT_FEED_SCALE,	/* establece el factor de escala para la velocidad de avance */
+	EMCMOT_RAPID_SCALE,	/* establece el factor de escala para rápidos */
+	EMCMOT_FS_ENABLE,	/* habilitar/deshabilitar la velocidad de avance de escala */
+	EMCMOT_FH_ENABLE,	/* habilitar/deshabilitar feed_hold */
+	EMCMOT_AF_ENABLE,	/* habilitar/deshabilitar velocidad de avance adaptativa */
 	EMCMOT_OVERRIDE_LIMITS,	/* ignorar temporalmente los límites hasta que finalice el desplazamiento */
 
-	EMCMOT_SET_LINE,			/* poner en cola un movimiento lineal */
-	EMCMOT_SET_CIRCLE,			/* poner en cola un movimiento circular */
+	EMCMOT_SET_LINE,		/* poner en cola un movimiento lineal */
+	EMCMOT_SET_CIRCLE,		/* poner en cola un movimiento circular */
 	EMCMOT_SET_TELEOP_VECTOR,	/* Moverse a una velocidad determinada pero en coordenadas cartesianas universales, 
-									no en el espacio de articulaciones como EMCMOT_JOG_* */
+					   no en el espacio de articulaciones como EMCMOT_JOG_* */
 	EMCMOT_CLEAR_PROBE_FLAGS,	/* borra el indicador probeTripped */
-	EMCMOT_PROBE,				/* ir a pos, detener si la sonda se activa, grabar pos de activación */
-	EMCMOT_RIGID_TAP,			/* ir a pos, con sincronización con velocidad del husillo, luego vuelve a la posición inicial */
+	EMCMOT_PROBE,			/* ir a pos, detener si la sonda se activa, grabar pos de activación */
+	EMCMOT_RIGID_TAP,		/* ir a pos, con sincronización con velocidad del husillo, luego vuelve a la posición inicial */
 
-	EMCMOT_SET_VEL,				/* establece la velocidad para los movimientos subsiguientes */
+	EMCMOT_SET_VEL,			/* establece la velocidad para los movimientos subsiguientes */
 	EMCMOT_SET_VEL_LIMIT,		/* establece la velocidad máxima para todos los movimientos (tooltip) */
-	EMCMOT_SET_ACC,				/* establece la aceleración máxima para los movimientos (tooltip) */
+	EMCMOT_SET_ACC,			/* establece la aceleración máxima para los movimientos (tooltip) */
 	EMCMOT_SET_TERM_COND,		/* establecer condición de terminación (stop, blend) */
 	EMCMOT_SET_NUM_JOINTS,		/* establece el número de articulaciones */
 	EMCMOT_SET_NUM_SPINDLES,	/* establece el número de husillos */
 	EMCMOT_SET_WORLD_HOME,		/* establecer la pose para el home universal */
 
-	EMCMOT_SET_DEBUG,			/* establece el nivel de depuración */
-	EMCMOT_SET_DOUT,			/* establece o anula un DIO, esto puede ser inmediato o sincronizado con el movimiento */
-	EMCMOT_SET_AOUT,			/* establece o anula un AIO, esto puede ser inmediato o sincronizado con el movimiento */
+	EMCMOT_SET_DEBUG,		/* establece el nivel de depuración */
+	EMCMOT_SET_DOUT,		/* establece o anula un DIO, esto puede ser inmediato o sincronizado con el movimiento */
+	EMCMOT_SET_AOUT,		/* establece o anula un AIO, esto puede ser inmediato o sincronizado con el movimiento */
 	EMCMOT_SET_SPINDLESYNC,		/* sincronizar el movimiento con el encoder del husillo */
-	EMCMOT_SPINDLE_ON,			/* arrancar el husillo */
-	EMCMOT_SPINDLE_OFF,			/* detener el husillo */
+	EMCMOT_SPINDLE_ON,		/* arrancar el husillo */
+	EMCMOT_SPINDLE_OFF,		/* detener el husillo */
 	EMCMOT_SPINDLE_INCREASE,	/* husillo más rápido */
 	EMCMOT_SPINDLE_DECREASE, 	/* husillo más lento */
 	EMCMOT_SPINDLE_BRAKE_ENGAGE,	/* activa el freno del husillo */
 	EMCMOT_SPINDLE_BRAKE_RELEASE,	/* libera el freno del husillo */
-	EMCMOT_SPINDLE_ORIENT,			/* orientar el husillo */
-	EMCMOT_SET_OFFSET,				/* establecer compensaciones de herramientas */
+	EMCMOT_SPINDLE_ORIENT,		/* orientar el husillo */
+	EMCMOT_SET_OFFSET,		/* establecer compensaciones de herramientas */
 	EMCMOT_SET_MAX_FEED_OVERRIDE,
 	EMCMOT_SETUP_ARC_BLENDS,
 
 	EMCMOT_SET_PROBE_ERR_INHIBIT,
-	EMCMOT_ENABLE_WATCHDOG,			/* habilitar el sonido del watchdog, parport */
-	EMCMOT_DISABLE_WATCHDOG,		/* deshabilitar sonido del watchdog, parport */
-	EMCMOT_JOG_CONT,				/* jog continuo */
-	EMCMOT_JOG_INCR,				/* jog incremental */
-	EMCMOT_JOG_ABS,					/* jog absoluto */
+	EMCMOT_ENABLE_WATCHDOG,		/* habilitar el sonido del watchdog, parport */
+	EMCMOT_DISABLE_WATCHDOG,	/* deshabilitar sonido del watchdog, parport */
+	EMCMOT_JOG_CONT,		/* jog continuo */
+	EMCMOT_JOG_INCR,		/* jog incremental */
+	EMCMOT_JOG_ABS,			/* jog absoluto */
 
-	EMCMOT_JOG_ABORT,					/* abortar una articulación núm. o un eje núm. */
-	EMCMOT_JOINT_ACTIVATE,				/* hacer articulación activa */
-	EMCMOT_JOINT_DEACTIVATE,			/* hacer articulación inactiva */
-	EMCMOT_JOINT_ENABLE_AMPLIFIER,		/* habilitar salidas de amplificador */
-	EMCMOT_JOINT_DISABLE_AMPLIFIER,		/* deshabilitar salidas de amplificador */
-	EMCMOT_JOINT_HOME, 					/* coloca en home una o todas las articulaciones */
-	EMCMOT_JOINT_UNHOME,				/* unhome una o todas las articulaciones*/
-	EMCMOT_SET_JOINT_POSITION_LIMITS,	/* establece los límites +/- de la posición de la articulación */
-	EMCMOT_SET_JOINT_BACKLASH,			/* establece el backlash de la articulación */
-	EMCMOT_SET_JOINT_MIN_FERROR,		/* error de seguimiento mínimo, unidades de entrada */
-	EMCMOT_SET_JOINT_MAX_FERROR,		/* error de seguimiento máximo, unidades de entrada */
-	EMCMOT_SET_JOINT_VEL_LIMIT,			/* establece la velocidad máxima de la articulación */
-	EMCMOT_SET_JOINT_ACC_LIMIT,			/* establece la aceleración máxima de la articulación */
-	EMCMOT_SET_JOINT_HOMING_PARAMS,		/* establece parámetros home de articulacion */
-	EMCMOT_UPDATE_JOINT_HOMING_PARAMS,	/* actualiza algunos parámetros de homing de articulacion */
-	EMCMOT_SET_JOINT_MOTOR_OFFSET,		/* establece el offset entre la articulación y el motor */
-	EMCMOT_SET_JOINT_COMP,				/* establece un triplete de compensación para una articulación (nominal, adelante, atrás) */
+	EMCMOT_JOG_ABORT,		/* abortar una articulación núm. o un eje núm. */
+	EMCMOT_JOINT_ACTIVATE,		/* hacer articulación activa */
+	EMCMOT_JOINT_DEACTIVATE,	/* hacer articulación inactiva */
+	EMCMOT_JOINT_ENABLE_AMPLIFIER,	/* habilitar salidas de amplificador */
+	EMCMOT_JOINT_DISABLE_AMPLIFIER,	/* deshabilitar salidas de amplificador */
+	EMCMOT_JOINT_HOME, 		/* coloca en home una o todas las articulaciones */
+	EMCMOT_JOINT_UNHOME,		/* unhome una o todas las articulaciones*/
+	EMCMOT_SET_JOINT_POSITION_LIMITS, /* establece los límites +/- de la posición de la articulación */
+	EMCMOT_SET_JOINT_BACKLASH,	/* establece el backlash de la articulación */
+	EMCMOT_SET_JOINT_MIN_FERROR,	/* error de seguimiento mínimo, unidades de entrada */
+	EMCMOT_SET_JOINT_MAX_FERROR,	/* error de seguimiento máximo, unidades de entrada */
+	EMCMOT_SET_JOINT_VEL_LIMIT,	/* establece la velocidad máxima de la articulación */
+	EMCMOT_SET_JOINT_ACC_LIMIT,	/* establece la aceleración máxima de la articulación */
+	EMCMOT_SET_JOINT_HOMING_PARAMS,	/* establece parámetros home de articulacion */
+	EMCMOT_UPDATE_JOINT_HOMING_PARAMS, /* actualiza algunos parámetros de homing de articulacion */
+	EMCMOT_SET_JOINT_MOTOR_OFFSET,	/* establece el offset entre la articulación y el motor */
+	EMCMOT_SET_JOINT_COMP,		/* establece un triplete de compensación para una articulación (nominal, adelante, atrás) */
 
-	EMCMOT_SET_AXIS_POSITION_LIMITS,	/* establece los límites +/- de la posición del eje */
-	EMCMOT_SET_AXIS_VEL_LIMIT,			/* establece la velocidad máxima del eje */
-	EMCMOT_SET_AXIS_ACC_LIMIT,			/* establece la aceleración máxima del eje */
-	EMCMOT_SET_AXIS_LOCKING_JOINT,		/* set the axis locking joint */
+	EMCMOT_SET_AXIS_POSITION_LIMITS, /* establece los límites +/- de la posición del eje */
+	EMCMOT_SET_AXIS_VEL_LIMIT,	/* establece la velocidad máxima del eje */
+	EMCMOT_SET_AXIS_ACC_LIMIT,	/* establece la aceleración máxima del eje */
+	EMCMOT_SET_AXIS_LOCKING_JOINT,	/* set the axis locking joint */
 
-	EMCMOT_SET_SPINDLE_PARAMS,			/* Un comando para configurar todos los parámetros del husillo */
+	EMCMOT_SET_SPINDLE_PARAMS,	/* Un comando para configurar todos los parámetros del husillo */
 
     } cmd_code_t;
 
@@ -186,47 +186,47 @@ extern "C" {
 */
     typedef struct emcmot_command_t {
     cmd_code_t command; 		/* código de comando (enumeración) */
-    int commandNum; 			/* incrementa esto para el nuevo comando */
-    double motor_offset; 		/* desplazamiento desde articulación a posición del motor */
-    double maxLimit; 			/* valor pos para el límite de posición, salida */
-    double minLimit; 			/* valor negativo para el límite de posición, salida */
-    double min_pos_speed; 		/* velocidad mínima positiva del husillo */
-    double max_neg_speed; 		/* velocidad negativa máxima del husillo */
-    EmcPose pos; 				/* punto final de línea/círculo, o vector teleop */
-    PmCartesian center; 		/* centro del círculo */
-    PmCartesian normal; 		/* vector normal para el círculo */
+    int commandNum; 		/* incrementa esto para el nuevo comando */
+    double motor_offset; 	/* desplazamiento desde articulación a posición del motor */
+    double maxLimit; 		/* valor pos para el límite de posición, salida */
+    double minLimit; 		/* valor negativo para el límite de posición, salida */
+    double min_pos_speed; 	/* velocidad mínima positiva del husillo */
+    double max_neg_speed; 	/* velocidad negativa máxima del husillo */
+    EmcPose pos; 		/* punto final de línea/círculo, o vector teleop */
+    PmCartesian center; 	/* centro del círculo */
+    PmCartesian normal; 	/* vector normal para el círculo */
     int turn;                   /* vueltas para el círculo o número de articulación para un indexador de bloqueo */
-    double vel; 				/* velocidad máxima */
+    double vel; 		/* velocidad máxima */
     double ini_maxvel;          /* velocidad máxima permitida por las restricciones de la máquina (el archivo INI) */
     int motion_type;            /* movimiento por desplazamiento, avance, arco o cambio de herramienta */
     double spindlesync;         /* unidades de usuario por revolución del husillo, 0 = sin sincronización */
     double acc;                 /* aceleración máxima */
     double backlash;            /* cantidad de backlash */
     int id;                     /* id para el movimiento */
-    int termCond;				/* condición de terminación */
-    double tolerance; 			/* tolerancia para desviación de trayectoria en modo CONTINUO */
+    int termCond;		/* condición de terminación */
+    double tolerance; 		/* tolerancia para desviación de trayectoria en modo CONTINUO */
     int joint;                  /* qué índice de articulación utilizar a continuación */
     int axis;                   /* qué índice de eje utilizar para lo siguiente */
-    int spindle; 				/* qué husillo utilizar */
-    double scale; 				/* escala de velocidad o escala de velocidad del husillo arg */
-    double offset; 				/* argumento de offset de input, output, o home*/
-    double home; 				/* posición home de articulación */
-    double home_final_vel; 		/* velocidad de la articulación para moverse desde OFFSET a HOME */
-    double search_vel; 			/* velocidad de búsqueda de inicio */
-    double latch_vel; 			/* velocidad del pestillo de inicio */
+    int spindle; 		/* qué husillo utilizar */
+    double scale; 		/* escala de velocidad o escala de velocidad del husillo arg */
+    double offset; 		/* argumento de offset de input, output, o home*/
+    double home; 		/* posición home de articulación */
+    double home_final_vel; 	/* velocidad de la articulación para moverse desde OFFSET a HOME */
+    double search_vel; 		/* velocidad de búsqueda de inicio */
+    double latch_vel; 		/* velocidad del pestillo de inicio */
     int flags; 	                /* indicadores de configuración de inicio, otros argumentos booleanos */
-    int home_sequence; 			/* orden en la secuencia de retorno */
-    int volatile_home; 			/* la articulación debe quedar sin hogar cuando obtenemos unhome -2 (generado por la tarea al detenerse, etc.) */
-    double minFerror; 			/* error de seguimiento mínimo */
-    double maxFerror; 			/* error máximo de seguimiento */
-    int wdWait; 				/* ciclo de espera antes de alternar wd */
+    int home_sequence; 		/* orden en la secuencia de retorno */
+    int volatile_home; 		/* la articulación debe quedar sin hogar cuando obtenemos unhome -2 (generado por la tarea al detenerse, etc.) */
+    double minFerror; 		/* error de seguimiento mínimo */
+    double maxFerror; 		/* error máximo de seguimiento */
+    int wdWait; 		/* ciclo de espera antes de alternar wd */
     int debug;                  /* nivel de depuración, de DEBUG en el archivo INI */
-    unsigned char now, out, start, end; 	/* estos están relacionados con AOUT/DOUT sincronizados.
+    unsigned char now, out, start, end; /* estos están relacionados con AOUT/DOUT sincronizados.
                                             now=ya sea ahora o sincronizado,
                                             out = cuál se establece,
                                             start=valor inicial,
                                             end=valor final */
-    unsigned char mode; 		/* se utiliza para activar o desactivar anulaciones, etc. */
+    unsigned char mode; 	/* se utiliza para activar o desactivar anulaciones, etc. */
     double comp_nominal, comp_forward, comp_reverse; 	 /* triplete de compensación, nominal, adelante, atrás */
     unsigned char probe_type; 	/*  ~1 = error si la operación de sondeo no es exitosa (valor predeterminado de ngc)
                                     |1 = suprimir error, informar en # en su lugar
@@ -234,22 +234,22 @@ extern "C" {
                                     |2 = mover hasta que la sonda se despeje */
     int probe_jog_err_inhibit; 	/* configuración para inhibir activación de sonda durante error jog */
     int probe_home_err_inhibit;	/* configuración para inhibir activación de sonda durante error home */
-    EmcPose tool_offset;		/* TLO */
-    double orientation; 		/* ángulo para orientar el husillo */
+    EmcPose tool_offset;	/* TLO */
+    double orientation; 	/* ángulo para orientar el husillo */
     int state;                  /* estado del husillo */
-    char direction; 	 		/* Indicador CANON_DIRECTION para la orientación del husillo */
-    double timeout; 			/* de espera para que se complete la orientación del husillo */
+    char direction; 	 	/* Indicador CANON_DIRECTION para la orientación del husillo */
+    double timeout; 		/* de espera para que se complete la orientación del husillo */
     unsigned char wait_for_spindle_at_speed; 	 /* EMCMOT_SPINDLE_ON ahora lleva esto, para el siguiente movimiento de avance */
-    int arcBlendOptDepth; 		/* */
-    int arcBlendEnable; 		/* */
+    int arcBlendOptDepth; 	/* */
+    int arcBlendEnable; 	/* */
     int arcBlendFallbackEnable; /* */
-    int arcBlendGapCycles; 		/* */
+    int arcBlendGapCycles; 	/* */
     double arcBlendRampFreq; 	/* */
-    double arcBlendTangentKinkRatio; 	/* */
-    double maxFeedScale; 		/* */
-    double ext_offset_vel; 		/* velocidad para un desplazamiento del eje externo */
-    double ext_offset_acc; 		/* aceleración para un desplazamiento del eje externo */
-struct state_tag_t tag; 	 	/* */
+    double arcBlendTangentKinkRatio; /* */
+    double maxFeedScale; 	/* */
+    double ext_offset_vel; 	/* velocidad para un desplazamiento del eje externo */
+    double ext_offset_acc; 	/* aceleración para un desplazamiento del eje externo */
+struct state_tag_t tag; 	 /* */
     } emcmot_command_t;
 
 /*! \todo FIXME - estos bits empaquetados podrían reemplazarse con caracteres. La memoria es barata y sería bueno poder acceder a ellos sin esas feas macros.
@@ -357,7 +357,7 @@ El retorno al origen también se realiza en modo libre; de hecho, las máquinas 
 	int entries;                   /* número de entradas en la matriz */
 	emcmot_comp_entry_t *entry;    /* entrada actual en la matriz */
 	emcmot_comp_entry_t array[EMCMOT_COMP_SIZE+2];
-	/* +2 porque la matriz tiene entradas -HUGE_VAL y +HUGE_VAL en los extremos */
+		/* +2 porque la matriz tiene entradas -HUGE_VAL y +HUGE_VAL en los extremos */
     } emcmot_comp_t;
 
 /* estados del controlador motion */
@@ -407,17 +407,17 @@ El retorno al origen también se realiza en modo libre; de hecho, las máquinas 
 	/* se pueden copiar a la estructura de estado o a una matriz de
 	estructuras de articulación pueden convertirse en parte del estado */
 	EMCMOT_JOINT_FLAG flag;		/* ver arriba para detalles de bits */
-	double coarse_pos; 			/* punto de trayectoria, antes de interp */
-	double pos_cmd; 			/* posición de la articulación comandada */
-	double vel_cmd;				/* velocidad articular comandada */
-	double acc_cmd; 			/* aceleración articular comandada */
+	double coarse_pos; 		/* punto de trayectoria, antes de interp */
+	double pos_cmd; 		/* posición de la articulación comandada */
+	double vel_cmd;			/* velocidad articular comandada */
+	double acc_cmd; 		/* aceleración articular comandada */
 	double backlash_corr; 		/* corrección por backlash */
 	double backlash_filt; 		/* corrección por backlash filtrada */
 	double backlash_vel; 		/* variable de velocidad de backlash */
 	double motor_pos_cmd; 		/* posición comandada, con compensación */
 	double motor_pos_fb; 		/* retroalimentación de posición, con compensación */
-	double pos_fb; 				/* retroalimentación de posición, compensación eliminada */
-	double ferror; 				/* error de seguimiento */
+	double pos_fb; 			/* retroalimentación de posición, compensación eliminada */
+	double ferror; 			/* error de seguimiento */
 	double ferror_limit;		/* el límite depende de la velocidad */
 	double ferror_high_mark; 	/* error máximo de seguimiento */
 	simple_tp_t free_tp; 		/* planificador para movimiento en modo libre */
@@ -425,14 +425,14 @@ El retorno al origen también se realiza en modo libre; de hecho, las máquinas 
 	int wheel_jjog_active; 		/* distinto de cero durante un jog de volante */
 
 	/* información interna: cambia periódicamente, normalmente no accede a ella el espacio de usuario*/
-	CUBIC_STRUCT cubic;	/* datos del interpolador cúbico */
+	CUBIC_STRUCT cubic; 	/* datos del interpolador cúbico */
 
-	int on_pos_limit;      /* distinto de cero si está en el límite pos */
-	int on_neg_limit;      /* distinto de cero si está en el límite neg */
+	int on_pos_limit;	/* distinto de cero si está en el límite pos */
+	int on_neg_limit;	/* distinto de cero si está en el límite neg */
 
-	double motor_offset;   /* diferencia entre la posición interna y la del motor, usada para poner la posición a cero durante el retorno a home */
-	int old_jjog_counts;   /* valor anterior, usado para deltas */
-	double big_vel;        /* usado para "debouncing" de la velocidad */
+	double motor_offset;	/* diferencia entre la posición interna y la del motor, usada para poner la posición a cero durante el retorno a home */
+	int old_jjog_counts;	/* valor anterior, usado para deltas */
+	double big_vel;		/* usado para "debouncing" de la velocidad */
     } emcmot_joint_t;
 
 /* La siguente estructura contiene únicamente los datos de “estado” asociados con una articulación. Los datos de “estado” son los datos que se deben informar al espacio de usuario de manera continua. Una matriz de estas estructuras es parte de la estructura de estado principal y se completa con datos copiados de las estructuras emcmot_joint_t en cada período de servo.
@@ -441,16 +441,16 @@ El retorno al origen también se realiza en modo libre; de hecho, las máquinas 
 
 */
     typedef struct {
-	EMCMOT_JOINT_FLAG flag;	/* ver arriba para detalles de bits */
-    bool homed;
-    bool homing;
+	EMCMOT_JOINT_FLAG flag;		/* ver arriba para detalles de bits */
+    	bool homed;
+   	 bool homing;
 
-	double pos_cmd;            /* posición de articulación ordenada */
-	double pos_fb;             /* retroalimentación de posición, compensación eliminada */
-	double vel_cmd;            /* velocidad actual */
-	double acc_cmd;            /* aceleración actual */
-	double ferror;             /* error de seguimiento */
-	double ferror_high_mark;   /* error máximo de seguimiento */
+	double pos_cmd;            	/* posición de articulación ordenada */
+	double pos_fb;             	/* retroalimentación de posición, compensación eliminada */
+	double vel_cmd;            	/* velocidad actual */
+	double acc_cmd;            	/* aceleración actual */
+	double ferror;             	/* error de seguimiento */
+	double ferror_high_mark;   	/* error máximo de seguimiento */
 
 /*! \todo FIXME – los siguientes no son realmente “estados”, pero taskintf.cc espera que estén en la estructura de estado. No sé cómo o si son utilizados por el código del espacio de usuario. Lo ideal sería eliminarlos de aquí, pero cada uno deberá investigarse individualmente.
 
@@ -468,25 +468,25 @@ El retorno al origen también se realiza en modo libre; de hecho, las máquinas 
 
 
     typedef struct {
-	double speed;		// velocidad del husillo en RPM
-	double scale; 		// valor de anulación del husillo
-	double net_scale;   // escala o cero si está inhibido
+	double speed;		/* velocidad del husillo en RPM */
+	double scale; 		/* valor de anulación del husillo */
+	double net_scale;   	/* escala o cero si está inhibido */
 	double css_factor;
 	double xoffset;
 	int state;
-	int direction;		// 0 stopped, 1 forward, -1 reverse
-	int brake;		// 0 liberado, 1 activado
-	int locked;             // bloqueo del husillo activado después de orientar
-	int orient_fault;       // código de fallo de motion.spindle-orient-fault
-	int orient_state;       // orient_state_t
+	int direction;		/* 0 stopped, 1 forward, -1 reverse */
+	int brake;		/* 0 liberado, 1 activado */
+	int locked;             /* bloqueo del husillo activado después de orientar */
+	int orient_fault;       /* código de fallo de motion.spindle-orient-fault */
+	int orient_state;       /* orient_state_t */
 	int spindle_index_enable;  /* conectado a un encoder canonico index-enable */
 	double spindleRevs;     /* posición del husillo en revoluciones */
 	double spindleSpeedIn;  /* velocidad del husillo en rpm */
 	int at_speed;
-	int fault; /* fallo del amplificador */
-	double max_pos_speed; /* límites de velocidad del husillo */
-	double min_pos_speed; /* valores con signo, por lo que max_neg = 0 */
-	double max_neg_speed; /* y min_neg = -1e99 indica que no hay límite */
+	int fault; 		/* fallo del amplificador */
+	double max_pos_speed; 	/* límites de velocidad del husillo */
+	double min_pos_speed; 	/* valores con signo, por lo que max_neg = 0 */
+	double max_neg_speed; 	/* y min_neg = -1e99 indica que no hay límite */
 	double min_neg_speed;
 	double home_angle;
 	double home_search_vel;
@@ -495,7 +495,7 @@ El retorno al origen también se realiza en modo libre; de hecho, las máquinas 
     } spindle_status_t;
 
     typedef struct {
-	double teleop_vel_cmd;		/* velocidad del eje comandada */
+	double teleop_vel_cmd;	/* velocidad del eje comandada */
 	double max_pos_limit;	/* límite superior soft en la posición del eje */
 	double min_pos_limit;	/* límite soft inferior en la posición del eje */
     } emcmot_axis_status_t;
@@ -512,30 +512,29 @@ A continuación, se suman otros miembros de la estructura. Todos los que se encu
 */
 
     typedef struct emcmot_status_t {
-	unsigned char head;	/* conteo de flags para detección de mutex */
+	unsigned char head;		/* conteo de flags para detección de mutex */
 	/* los siguientes tres se actualizan solo ante un nuevo comando */
-	cmd_code_t commandEcho;	/* eco del comando de entrada */
-	int commandNumEcho;	/* eco del número del comando de entrada */
+	cmd_code_t commandEcho;		/* eco del comando de entrada */
+	int commandNumEcho;		/* eco del número del comando de entrada */
 	cmd_status_t commandStatus;	/* resultado del comando más reciente */
 	/* información de configuración; se actualiza al cambiarla un comando */
-	double feed_scale;	/* factor de escala de velocidad para todos los movimientos excepto los rápidos */
-	double rapid_scale;	/* factor de escala de velocidad para rápidos */
+	double feed_scale;		/* factor de escala de velocidad para todos los movimientos excepto los rápidos */
+	double rapid_scale;		/* factor de escala de velocidad para rápidos */
 	unsigned char enables_new;	/* flags para FS, SS, etc */
-    /* el conjunto anterior es el que está habilitado para nuevos movimientos. El resto se actualiza cada ciclo */
-	double net_feed_scale;	/* factor de escala neto para todos los movimientos */
+	/* el conjunto anterior es el que está habilitado para nuevos movimientos. El resto se actualiza cada ciclo */
+	double net_feed_scale;		/* factor de escala neto para todos los movimientos */
 	unsigned char enables_queued;	/* flags para FS, SS, etc */
-		/* el conjunto anterior son las habilitaciones vigentes para el
-		movimiento actualmente en ejecución  */
-	motion_state_t motion_state; /* estado operativo: FREE, COORD, etc. */
+	/* el conjunto anterior son las habilitaciones vigentes para el movimiento actualmente en ejecución  */
+	motion_state_t motion_state; 	/* estado operativo: FREE, COORD, etc. */
 	EMCMOT_MOTION_FLAG motionFlag;	/* ver arriba para detalles de bits */
-	EmcPose carte_pos_cmd;	/* posición cartesiana ordenad */
-	int carte_pos_cmd_ok;	/* distinto de cero si el comando es válido */
-	EmcPose carte_pos_fb;	/* posición cartesiana actual */
-	int carte_pos_fb_ok;	/* distinto de cero si feedback es válido */
-	EmcPose world_home;	/* coordenadas cartesianas de la posición home */
+	EmcPose carte_pos_cmd;		/* posición cartesiana ordenad */
+	int carte_pos_cmd_ok;		/* distinto de cero si el comando es válido */
+	EmcPose carte_pos_fb;		/* posición cartesiana actual */
+	int carte_pos_fb_ok;		/* distinto de cero si feedback es válido */
+	EmcPose world_home;		/* coordenadas cartesianas de la posición home */
 	emcmot_joint_status_t joint_status[EMCMOT_MAX_JOINTS];	/* todos los datos sobre el estado de las articulaciones */
     emcmot_axis_status_t axis_status[EMCMOT_MAX_AXIS];	/* todos los datos de estado del eje*/
-    int spindleSync;    /* husillo utilizado para movimientos sincronizados. -1 = ninguno */
+    int spindleSync;    		/* husillo utilizado para movimientos sincronizados. -1 = ninguno */
     spindle_status_t spindle_status[EMCMOT_MAX_SPINDLES]; /* todos los datos del husillo */
 
 
